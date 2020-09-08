@@ -1,7 +1,7 @@
 [package]
 name = "credent"
 version = "0.1.0"
-description = "Manages ~/.config/<app>/credentials."
+description = "Manages `~/.config/<app>/credentials`."
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2018"
 
