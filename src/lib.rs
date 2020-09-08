@@ -9,7 +9,6 @@
 //! |___|_| |___|___|___|_|_|_|
 //! ```
 
-mod colours;
-mod logo;
-
-pub use crate::{colours::Colours, logo::Logo};
+pub use credent_auth_cli::CredentialsCliReader;
+pub use credent_auth_fs::{AppName, CredentialsFile, CredentialsFileLoader, CredentialsFileStorer};
+pub use credent_auth_model::{Credentials, Password};

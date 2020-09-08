@@ -182,7 +182,6 @@ dependencies = [
  "credent_auth_fs",
  "credent_auth_model",
  "crossterm",
- "once_cell",
  "smol",
 ]
 
