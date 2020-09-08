@@ -1,0 +1,12 @@
+[plain_text]
+workspace = true
+no-default-features = true
+
+[base64]
+workspace = true
+no-default-features = true
+features = "base64"
+
+[report]
+out = ["Html", "Xml"]
+output-dir = "target/tarpaulin"

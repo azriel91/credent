@@ -42,7 +42,7 @@ impl CredentialsCliReader {
         // Read password on a separate thread.
         let password = smol::unblock! {
             rpassword::read_password_from_tty(None)
-                .map(Password)
+                .map(Password::new)
                 .expect("Failed to read password from user input.")
         };
 
