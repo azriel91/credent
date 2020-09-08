@@ -5,6 +5,10 @@ description = "Reads / Writes credentials from / to disk."
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2018"
 
+[lib]
+test = false
+doctest = false
+
 [dependencies]
 dirs = "3.0.1"
 async-fs = "1.1.0"
