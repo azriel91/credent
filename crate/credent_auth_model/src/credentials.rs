@@ -1,4 +1,7 @@
-use std::cmp::{Ordering, PartialOrd};
+use std::{
+    cmp::{Ordering, PartialOrd},
+    fmt::{self, Debug, Display},
+};
 
 use crate::{Password, Username};
 
@@ -21,5 +24,11 @@ impl PartialOrd for Credentials {
 impl Ord for Credentials {
     fn cmp(&self, other: &Credentials) -> Ordering {
         self.username.cmp(&other.username)
+    }
+}
+
+impl Display for Credentials {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}:{}", self.username, self.password)
     }
 }

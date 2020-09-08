@@ -1,0 +1,37 @@
+# Credent
+
+Manages `~/.config/<app>/credentials`.
+
+![](demo.png)
+
+## Usage
+
+```rust
+use credent::{AppName, CredentialsCliReader, CredentialsFile, CredentialsFileStorer};
+
+/// Application name
+const CREDENT: AppName<'_> = AppName("credent");
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    smol::run(async {
+        let credentials = CredentialsCliReader::read_from_tty().await?;
+        println!("credentials: {}", credentials);
+
+        CredentialsFileStorer::store(CREDENT, &credentials).await?;
+
+        println!(
+            "credentials written to: {}",
+            CredentialsFile::path(CREDENT)?.display()
+        );
+
+        Result::<(), Box<dyn std::error::Error>>::Ok(())
+    })
+}
+```
+
+More sample code can be seen in the [examples](examples).
+
+```
+cargo run --example simple
+cargo run --example demo
+```
