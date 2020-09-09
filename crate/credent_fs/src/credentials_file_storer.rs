@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use credent_auth_model::Credentials;
+use credent_model::Credentials;
 
 use crate::{AppName, CredentialsFile, Error};
 

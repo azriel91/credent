@@ -3,7 +3,7 @@ use std::{
     path::PathBuf,
 };
 
-use credent_auth_model::Credentials;
+use credent_model::Credentials;
 
 /// Errors when reading the user credentials file.
 #[derive(Debug)]

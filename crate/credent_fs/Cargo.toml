@@ -1,5 +1,5 @@
 [package]
-name = "credent_auth_fs"
+name = "credent_fs"
 version = "0.1.0"
 description = "Reads / Writes credentials from / to disk."
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
@@ -13,4 +13,4 @@ doctest = false
 dirs = "3.0.1"
 async-fs = "1.1.0"
 toml = "0.5.6"
-credent_auth_model = { path = "../credent_auth_model", features = ["serde"] }
+credent_model = { path = "../credent_model", features = ["serde"] }

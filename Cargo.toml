@@ -10,9 +10,9 @@ test = false
 doctest = false
 
 [dependencies]
-credent_auth_cli = { path = "crate/credent_auth_cli" }
-credent_auth_fs = { path = "crate/credent_auth_fs" }
-credent_auth_model = { path = "crate/credent_auth_model" }
+credent_cli = { path = "crate/credent_cli" }
+credent_fs = { path = "crate/credent_fs" }
+credent_model = { path = "crate/credent_model" }
 
 [dev-dependencies]
 crossterm = "0.17.7"
@@ -20,8 +20,8 @@ smol = "0.3.3"
 
 [features]
 default = ["base64", "serde"]
-base64 = ["credent_auth_model/base64"]
-serde = ["credent_auth_model/serde"]
+base64 = ["credent_model/base64"]
+serde = ["credent_model/serde"]
 
 [workspace]
 members = ["crate/*"]

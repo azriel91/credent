@@ -2,7 +2,10 @@
 
 //! Reads credentials from the command line and stores them.
 
-use credent::{AppName, CredentialsCliReader, CredentialsFile, CredentialsFileStorer};
+use credent::{
+    cli::CredentialsCliReader,
+    fs::{AppName, CredentialsFile, CredentialsFileStorer},
+};
 
 /// Application name
 const CREDENT: AppName<'_> = AppName("credent");

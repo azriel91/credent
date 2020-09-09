@@ -10,8 +10,9 @@
 //! ```
 
 use credent::{
-    AppName, Credentials, CredentialsCliReader, CredentialsFile, CredentialsFileLoader,
-    CredentialsFileStorer, Password,
+    cli::CredentialsCliReader,
+    fs::{AppName, CredentialsFile, CredentialsFileLoader, CredentialsFileStorer},
+    model::{Credentials, Password},
 };
 
 use demo_styles::{Colours, Logo, Prompt};

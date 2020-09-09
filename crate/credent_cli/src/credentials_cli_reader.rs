@@ -2,7 +2,7 @@ use std::{fmt::Display, io};
 
 use smol::{io::Error, prelude::AsyncWriteExt, Unblock};
 
-use credent_auth_model::{Credentials, Password, Username};
+use credent_model::{Credentials, Password, Username};
 
 const CREDENTIALS_CLI_READER_PLAIN: CredentialsCliReader<&str, &str> = CredentialsCliReader {
     username_prompt: "Username: ",
