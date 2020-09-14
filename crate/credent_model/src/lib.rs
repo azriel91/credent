@@ -4,6 +4,9 @@
 
 mod credentials;
 mod password;
+mod profile;
 mod username;
 
-pub use crate::{credentials::Credentials, password::Password, username::Username};
+pub use crate::{
+    credentials::Credentials, password::Password, profile::Profile, username::Username,
+};
