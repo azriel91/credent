@@ -12,7 +12,7 @@
 use credent::{
     cli::CredentialsCliReader,
     fs::{AppName, CredentialsFile, CredentialsFileLoader, CredentialsFileStorer},
-    model::{Credentials, Password},
+    model::{Credentials, Password, Profile},
 };
 
 use demo_styles::{Colours, Logo, Prompt};
@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         let credentials_result = CredentialsFileLoader::load(CREDENT).await;
-        let credentials = if let Some(credentials_result) = credentials_result {
+        let profile = if let Some(credentials_result) = credentials_result {
             println!(
                 "{note} Read credentials from `{path}`.",
                 note = Colours::informative_label().apply("Note:"),
@@ -43,7 +43,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             credentials_result?
         } else {
             let credentials = credentials_cli_reader.prompt_from_tty().await?;
-            CredentialsFileStorer::store(CREDENT, &credentials).await?;
+            let profile = Profile::new_default(credentials);
+            CredentialsFileStorer::store(CREDENT, &profile).await?;
 
             println!("");
             println!(
@@ -53,13 +54,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Colours::informative_value().apply(CredentialsFile::path(CREDENT)?.display()),
             );
 
-            credentials
+            profile
         };
         println!("");
 
-        output_credentials(&credentials);
+        output_credentials(&profile.credentials);
         println!("");
-        output_password(&credentials.password);
+        output_password(&profile.credentials.password);
 
         Result::<(), Box<dyn std::error::Error>>::Ok(())
     })

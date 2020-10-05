@@ -1,6 +1,7 @@
 use std::{
+    borrow::Borrow,
     cmp::{Ordering, PartialOrd},
-    fmt::{self, Debug, Display},
+    fmt::{self, Display},
 };
 
 use crate::Credentials;
@@ -16,6 +17,29 @@ pub struct Profile {
     pub name: String,
     /// Credentials for this profile.
     pub credentials: Credentials,
+}
+
+impl Profile {
+    /// Name given to the *default* profile.
+    pub const DEFAULT_NAME: &'static str = "default";
+
+    /// Returns a new `Profile`.
+    pub fn new(name: String, credentials: Credentials) -> Self {
+        Self { name, credentials }
+    }
+
+    /// Returns a new `Profile` with the `"default"` name.
+    pub fn new_default(credentials: Credentials) -> Self {
+        Self {
+            name: String::from(Self::DEFAULT_NAME),
+            credentials,
+        }
+    }
+
+    /// Returns whether this profile has the `"default"` profile name.
+    pub fn is_default(&self) -> bool {
+        self.name == Self::DEFAULT_NAME
+    }
 }
 
 impl PartialOrd for Profile {
@@ -38,5 +62,11 @@ impl Display for Profile {
             profile_name = self.name,
             credentials = self.credentials
         )
+    }
+}
+
+impl Borrow<str> for Profile {
+    fn borrow(&self) -> &str {
+        &self.name
     }
 }
