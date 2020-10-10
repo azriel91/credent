@@ -25,3 +25,8 @@ serde = ["credent_model/serde"]
 
 [workspace]
 members = ["crate/*"]
+
+# Suppress warning about no `main` function.
+[[example]]
+name = "demo_styles"
+crate-type = ["staticlib"]

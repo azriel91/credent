@@ -1,6 +1,9 @@
-use std::{collections::BTreeSet, path::Path};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::Path,
+};
 
-use credent_model::Profile;
+use credent_model::{Credentials, Profile};
 
 use crate::{AppName, CredentialsFile, Error};
 
@@ -115,12 +118,22 @@ impl CredentialsFileLoader {
         profiles_contents: Vec<u8>,
         credentials_path: &Path,
     ) -> Result<BTreeSet<Profile>, Error> {
-        toml::from_slice(&profiles_contents).map_err(|toml_de_error| {
+        let profiles_map_result = toml::from_slice::<BTreeMap<String, Credentials>>(
+            &profiles_contents,
+        )
+        .map_err(|toml_de_error| {
             let credentials_path = credentials_path.to_owned();
             Error::CredentialsFileFailedToDeserialize {
                 credentials_path,
                 toml_de_error,
             }
+        });
+
+        profiles_map_result.map(|profile_map| {
+            profile_map
+                .into_iter()
+                .map(|(name, credentials)| Profile::new(name, credentials))
+                .collect()
         })
     }
 }

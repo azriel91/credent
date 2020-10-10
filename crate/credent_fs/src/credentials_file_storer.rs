@@ -1,6 +1,9 @@
-use std::{collections::BTreeSet, path::Path};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::Path,
+};
 
-use credent_model::Profile;
+use credent_model::{Credentials, Profile};
 
 use crate::{AppName, CredentialsFile, CredentialsFileLoader, Error};
 
@@ -86,7 +89,12 @@ impl CredentialsFileStorer {
     }
 
     fn profiles_serialize(profiles: &BTreeSet<Profile>) -> Result<String, Error> {
-        toml::ser::to_string_pretty(profiles).map_err(|toml_ser_error| {
+        let profiles_map = profiles
+            .iter()
+            .map(|profile| (profile.name.as_str(), &profile.credentials))
+            .collect::<BTreeMap<&str, &Credentials>>();
+
+        toml::ser::to_string_pretty(&profiles_map).map_err(|toml_ser_error| {
             let profiles = profiles.clone();
             Error::CredentialsFileFailedToSerialize {
                 profiles,
