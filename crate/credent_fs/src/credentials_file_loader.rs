@@ -77,7 +77,7 @@ impl CredentialsFileLoader {
                         profiles
                             .0
                             .into_iter()
-                            .find(|profile| &profile.name == profile_name)
+                            .find(|profile| profile.name == profile_name)
                     })
                     .transpose()
             })
