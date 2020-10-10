@@ -1,9 +1,6 @@
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    path::Path,
-};
+use std::path::Path;
 
-use credent_model::{Credentials, Profile};
+use credent_model::{Profile, Profiles};
 
 use crate::{AppName, CredentialsFile, Error};
 
@@ -24,7 +21,7 @@ impl CredentialsFileLoader {
     /// # Parameters
     ///
     /// * `app_name`: Name of the application whose credentials to load.
-    pub async fn load_all(app_name: AppName<'_>) -> Option<Result<BTreeSet<Profile>, Error>> {
+    pub async fn load_all(app_name: AppName<'_>) -> Option<Result<Profiles, Error>> {
         let credentials_path = CredentialsFile::path(app_name).ok()?;
         if credentials_path.exists() {
             let profiles_result = Self::load_file(credentials_path.as_ref()).await;
@@ -78,6 +75,7 @@ impl CredentialsFileLoader {
                 profiles_result
                     .map(|profiles| {
                         profiles
+                            .0
                             .into_iter()
                             .find(|profile| &profile.name == profile_name)
                     })
@@ -91,7 +89,7 @@ impl CredentialsFileLoader {
     /// # Parameters
     ///
     /// * `credentials_path`: File to load credentials from.
-    pub async fn load_file(credentials_path: &Path) -> Result<BTreeSet<Profile>, Error> {
+    pub async fn load_file(credentials_path: &Path) -> Result<Profiles, Error> {
         if !credentials_path.exists() {
             let credentials_path = credentials_path.to_owned();
             Err(Error::CredentialsFileNonExistent { credentials_path })
@@ -117,23 +115,13 @@ impl CredentialsFileLoader {
     fn credentials_deserialize(
         profiles_contents: Vec<u8>,
         credentials_path: &Path,
-    ) -> Result<BTreeSet<Profile>, Error> {
-        let profiles_map_result = toml::from_slice::<BTreeMap<String, Credentials>>(
-            &profiles_contents,
-        )
-        .map_err(|toml_de_error| {
+    ) -> Result<Profiles, Error> {
+        toml::from_slice(&profiles_contents).map_err(|toml_de_error| {
             let credentials_path = credentials_path.to_owned();
             Error::CredentialsFileFailedToDeserialize {
                 credentials_path,
                 toml_de_error,
             }
-        });
-
-        profiles_map_result.map(|profile_map| {
-            profile_map
-                .into_iter()
-                .map(|(name, credentials)| Profile::new(name, credentials))
-                .collect()
         })
     }
 }

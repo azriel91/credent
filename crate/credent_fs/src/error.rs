@@ -1,10 +1,9 @@
 use std::{
-    collections::BTreeSet,
     fmt::{self, Display},
     path::PathBuf,
 };
 
-use credent_model::Profile;
+use credent_model::Profiles;
 
 /// Errors when reading the user credentials file.
 #[derive(Debug)]
@@ -52,7 +51,7 @@ pub enum Error {
     /// Failed to serialize user credentials.
     CredentialsFileFailedToSerialize {
         /// Profiles which failed to be serialized.
-        profiles: BTreeSet<Profile>,
+        profiles: Profiles,
         /// The underlying TOML error.
         toml_ser_error: toml::ser::Error,
     },

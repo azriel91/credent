@@ -15,8 +15,15 @@ use crate::{Credentials, Profile};
         into = "BTreeMap<String, Credentials>"
     )
 )]
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Profiles(pub BTreeSet<Profile>);
+
+impl Profiles {
+    /// Returns an empty set of [`Profile`]s.
+    pub fn new() -> Self {
+        Self(BTreeSet::new())
+    }
+}
 
 impl Deref for Profiles {
     type Target = BTreeSet<Profile>;

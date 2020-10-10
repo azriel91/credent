@@ -1,9 +1,6 @@
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    path::Path,
-};
+use std::path::Path;
 
-use credent_model::{Credentials, Profile};
+use credent_model::{Profile, Profiles};
 
 use crate::{AppName, CredentialsFile, CredentialsFileLoader, Error};
 
@@ -35,7 +32,7 @@ impl CredentialsFileStorer {
     /// * `credentials_path`: File to write credentials to.
     pub async fn store_file(profile: &Profile, credentials_path: &Path) -> Result<(), Error> {
         let profiles_existing = Self::profiles_existing(credentials_path).await?;
-        let mut profiles = profiles_existing.unwrap_or_else(BTreeSet::new);
+        let mut profiles = profiles_existing.unwrap_or_else(Profiles::new);
         profiles.insert(profile.clone());
 
         let profiles_contents = Self::profiles_serialize(&profiles)?;
@@ -46,9 +43,7 @@ impl CredentialsFileStorer {
         Ok(())
     }
 
-    async fn profiles_existing(
-        credentials_path: &Path,
-    ) -> Result<Option<BTreeSet<Profile>>, Error> {
+    async fn profiles_existing(credentials_path: &Path) -> Result<Option<Profiles>, Error> {
         if credentials_path.exists() {
             CredentialsFileLoader::load_file(credentials_path)
                 .await
@@ -88,13 +83,8 @@ impl CredentialsFileStorer {
             })
     }
 
-    fn profiles_serialize(profiles: &BTreeSet<Profile>) -> Result<String, Error> {
-        let profiles_map = profiles
-            .iter()
-            .map(|profile| (profile.name.as_str(), &profile.credentials))
-            .collect::<BTreeMap<&str, &Credentials>>();
-
-        toml::ser::to_string_pretty(&profiles_map).map_err(|toml_ser_error| {
+    fn profiles_serialize(profiles: &Profiles) -> Result<String, Error> {
+        toml::ser::to_string_pretty(&profiles).map_err(|toml_ser_error| {
             let profiles = profiles.clone();
             Error::CredentialsFileFailedToSerialize {
                 profiles,
