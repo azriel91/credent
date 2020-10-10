@@ -25,7 +25,7 @@ const CREDENT: AppName<'_> = AppName("credent");
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", Logo::ascii_coloured());
 
-    smol::run(async {
+    smol::block_on(async {
         let credentials = match default_profile_credentials().await? {
             Some(credentials) => credentials,
             None => prompt_and_save_credentials().await?,

@@ -12,7 +12,7 @@ use credent::{
 const CREDENT: AppName<'_> = AppName("credent");
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    smol::run(async {
+    smol::block_on(async {
         let credentials = CredentialsCliReader::read_from_tty().await?;
         println!("credentials: {}", credentials);
 

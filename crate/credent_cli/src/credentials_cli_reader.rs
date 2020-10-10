@@ -1,6 +1,9 @@
 use std::{fmt::Display, io};
 
-use smol::{io::Error, prelude::AsyncWriteExt, Unblock};
+use smol::{
+    io::{AsyncWriteExt, Error},
+    Unblock,
+};
 
 use credent_model::{Credentials, Password, Username};
 
@@ -59,10 +62,13 @@ where
             .await?;
         stderr.flush().await?;
 
-        let username = smol::unblock! {
+        let username = smol::unblock(|| {
             let mut username = String::new();
-            io::stdin().read_line(&mut username).map(|_| Username(username.trim().to_string()))
-        }?;
+            io::stdin()
+                .read_line(&mut username)
+                .map(|_| Username(username.trim().to_string()))
+        })
+        .await?;
 
         Ok(username)
     }
@@ -76,11 +82,12 @@ where
         stderr.flush().await?;
 
         // Read password on a separate thread.
-        let password = smol::unblock! {
+        let password = smol::unblock(|| {
             rpassword::read_password_from_tty(None)
                 .map(Password::new)
-                .expect("Failed to read password from user input.")
-        };
+                .expect("Failed to) read password from user input.")
+        })
+        .await;
 
         Ok(password)
     }
