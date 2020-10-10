@@ -1,43 +1,56 @@
 use std::path::Path;
 
-use credent_auth_model::Credentials;
+use credent_model::{Profile, Profiles};
 
-use crate::{AppName, CredentialsFile, Error};
+use crate::{AppName, CredentialsFile, CredentialsFileLoader, Error};
 
 /// Writes credentials to the user's configuration directory.
 #[derive(Debug)]
 pub struct CredentialsFileStorer;
 
 impl CredentialsFileStorer {
-    /// Returns the credentials stored in the user's configuration directory.
+    /// Stores a `Profile` in the default application credentials file.
+    ///
+    /// This replaces the profile's credentials in the file.
     ///
     /// The path differs depending on the user's operating system:
     ///
     /// * `Windows`: `C:\Users\%USER%\AppData\Roaming\<app>\credentials`
     /// * `Linux`: `$XDG_CONFIG_HOME` or `$HOME/.config/<app>/credentials`
     /// * `OS X`: `$HOME/Library/Application Support/<app>/credentials`
-    pub async fn store(app_name: AppName<'_>, credentials: &Credentials) -> Result<(), Error> {
+    pub async fn store(app_name: AppName<'_>, profile: &Profile) -> Result<(), Error> {
         let credentials_path = CredentialsFile::path(app_name)?;
-        Self::store_file(credentials, credentials_path.as_ref()).await
+        Self::store_file(profile, credentials_path.as_ref()).await
     }
 
-    /// Stores `Credentials` in the given file.
+    /// Stores a `Profile` in the given file.
     ///
-    /// Currently this overwrites the credentials in the file. In the future,
-    /// this may be changed to handle multiple credentials in the same file.
+    /// This replaces the profile's credentials in the file.
     ///
     /// # Parameters
     ///
     /// * `credentials_path`: File to write credentials to.
-    pub async fn store_file(
-        credentials: &Credentials,
-        credentials_path: &Path,
-    ) -> Result<(), Error> {
+    pub async fn store_file(profile: &Profile, credentials_path: &Path) -> Result<(), Error> {
+        let profiles_existing = Self::profiles_existing(credentials_path).await?;
+        let mut profiles = profiles_existing.unwrap_or_else(Profiles::new);
+        profiles.insert(profile.clone());
+
+        let profiles_contents = Self::profiles_serialize(&profiles)?;
+
         Self::credentials_parent_create(credentials_path).await?;
-        let credentials_contents = Self::credentials_serialize(credentials)?;
-        Self::credentials_file_write(credentials_contents.as_bytes(), credentials_path).await?;
+        Self::credentials_file_write(profiles_contents.as_bytes(), credentials_path).await?;
 
         Ok(())
+    }
+
+    async fn profiles_existing(credentials_path: &Path) -> Result<Option<Profiles>, Error> {
+        if credentials_path.exists() {
+            CredentialsFileLoader::load_file(credentials_path)
+                .await
+                .map(Some)
+        } else {
+            Ok(None)
+        }
     }
 
     async fn credentials_parent_create(credentials_path: &Path) -> Result<(), Error> {
@@ -70,11 +83,11 @@ impl CredentialsFileStorer {
             })
     }
 
-    fn credentials_serialize(credentials: &Credentials) -> Result<String, Error> {
-        toml::ser::to_string_pretty(credentials).map_err(|toml_ser_error| {
-            let credentials = credentials.clone();
+    fn profiles_serialize(profiles: &Profiles) -> Result<String, Error> {
+        toml::ser::to_string_pretty(&profiles).map_err(|toml_ser_error| {
+            let profiles = profiles.clone();
             Error::CredentialsFileFailedToSerialize {
-                credentials,
+                profiles,
                 toml_ser_error,
             }
         })

@@ -9,6 +9,6 @@
 //! |___|_| |___|___|___|_|_|_|
 //! ```
 
-pub use credent_auth_cli::CredentialsCliReader;
-pub use credent_auth_fs::{AppName, CredentialsFile, CredentialsFileLoader, CredentialsFileStorer};
-pub use credent_auth_model::{Credentials, Password};
+pub use credent_cli as cli;
+pub use credent_fs as fs;
+pub use credent_model as model;

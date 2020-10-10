@@ -1,5 +1,5 @@
 [package]
-name = "credent_auth_cli"
+name = "credent_cli"
 version = "0.1.0"
 description = "Reads in credentials from the CLI."
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
@@ -12,4 +12,4 @@ doctest = false
 [dependencies]
 rpassword = "5.0.0"
 smol = "0.3.3"
-credent_auth_model = { path = "../credent_auth_model" }
+credent_model = { path = "../credent_model" }

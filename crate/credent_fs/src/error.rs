@@ -3,7 +3,7 @@ use std::{
     path::PathBuf,
 };
 
-use credent_auth_model::Credentials;
+use credent_model::Profiles;
 
 /// Errors when reading the user credentials file.
 #[derive(Debug)]
@@ -48,10 +48,10 @@ pub enum Error {
         /// The underlying TOML error.
         toml_de_error: toml::de::Error,
     },
-    /// Failed to Serialize user credentials.
+    /// Failed to serialize user credentials.
     CredentialsFileFailedToSerialize {
-        /// User credentials which failed to be serialized.
-        credentials: Credentials,
+        /// Profiles which failed to be serialized.
+        profiles: Profiles,
         /// The underlying TOML error.
         toml_ser_error: toml::ser::Error,
     },
@@ -118,14 +118,14 @@ impl Display for Error {
                 toml_de_error
             ),
             Self::CredentialsFileFailedToSerialize {
-                credentials,
+                profiles,
                 toml_ser_error,
             } => write!(
                 f,
                 "User credentials failed to be serialized.\n\
-                Credentials: `{:?}`\n\
+                Profiles: `{:?}`\n\
                 Error: `{}`",
-                credentials, toml_ser_error
+                profiles, toml_ser_error
             ),
         }
     }
