@@ -9,28 +9,6 @@ use crate::{AppName, CredentialsFile, Error};
 pub struct CredentialsFileLoader;
 
 impl CredentialsFileLoader {
-    /// Returns all profile credentials stored in the user's configuration
-    /// directory.
-    ///
-    /// The path differs depending on the user's operating system:
-    ///
-    /// * `Windows`: `C:\Users\%USER%\AppData\Roaming\<app>\credentials`
-    /// * `Linux`: `$XDG_CONFIG_HOME` or `$HOME/.config/<app>/credentials`
-    /// * `OS X`: `$HOME/Library/Application Support/<app>/credentials`
-    ///
-    /// # Parameters
-    ///
-    /// * `app_name`: Name of the application whose credentials to load.
-    pub async fn load_all(app_name: AppName<'_>) -> Option<Result<Profiles, Error>> {
-        let credentials_path = CredentialsFile::path(app_name).ok()?;
-        if credentials_path.exists() {
-            let profiles_result = Self::load_file(credentials_path.as_ref()).await;
-            Some(profiles_result)
-        } else {
-            None
-        }
-    }
-
     /// Returns the default profile credentials stored in the user's
     /// configuration directory.
     ///
@@ -43,12 +21,12 @@ impl CredentialsFileLoader {
     /// # Parameters
     ///
     /// * `app_name`: Name of the application whose credentials to load.
-    pub async fn load(app_name: AppName<'_>) -> Option<Result<Profile, Error>> {
-        let credentials_path = CredentialsFile::path(app_name).ok()?;
+    pub async fn load(app_name: AppName<'_>) -> Result<Option<Profile>, Error> {
+        let credentials_path = CredentialsFile::path(app_name)?;
         if credentials_path.exists() {
             Self::load_profile(app_name, Profile::DEFAULT_NAME).await
         } else {
-            None
+            Ok(None)
         }
     }
 
@@ -68,20 +46,39 @@ impl CredentialsFileLoader {
     pub async fn load_profile(
         app_name: AppName<'_>,
         profile_name: &str,
-    ) -> Option<Result<Profile, Error>> {
+    ) -> Result<Option<Profile>, Error> {
         Self::load_all(app_name)
             .await
             .map(|profiles_result| {
-                profiles_result
-                    .map(|profiles| {
-                        profiles
-                            .0
-                            .into_iter()
-                            .find(|profile| profile.name == profile_name)
-                    })
-                    .transpose()
+                profiles_result.map(|profiles| {
+                    profiles
+                        .0
+                        .into_iter()
+                        .find(|profile| profile.name == profile_name)
+                })
             })
-            .flatten()
+            .map(Option::flatten)
+    }
+
+    /// Returns all profile credentials stored in the user's configuration
+    /// directory.
+    ///
+    /// The path differs depending on the user's operating system:
+    ///
+    /// * `Windows`: `C:\Users\%USER%\AppData\Roaming\<app>\credentials`
+    /// * `Linux`: `$XDG_CONFIG_HOME` or `$HOME/.config/<app>/credentials`
+    /// * `OS X`: `$HOME/Library/Application Support/<app>/credentials`
+    ///
+    /// # Parameters
+    ///
+    /// * `app_name`: Name of the application whose credentials to load.
+    pub async fn load_all(app_name: AppName<'_>) -> Result<Option<Profiles>, Error> {
+        let credentials_path = CredentialsFile::path(app_name)?;
+        if credentials_path.exists() {
+            Self::load_file(credentials_path.as_ref()).await.map(Some)
+        } else {
+            Ok(None)
+        }
     }
 
     /// Loads all credential profiles from the given file.
