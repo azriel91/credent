@@ -1,0 +1,195 @@
+#![deny(missing_debug_implementations, missing_docs)]
+
+//! Reads credentials for a given profile from file, or prompts the user if they
+//! don't exist.
+//!
+//! ```text,ignore
+//!                _         _
+//!  ___ ___ ___ _| |___ ___| |_
+//! |  _|  _| -_| . | -_|   |  _|
+//! |___|_| |___|___|___|_|_|_|
+//! ```
+
+use std::{env, ffi::OsStr, path::PathBuf};
+
+use credent::{
+    cli::CredentialsCliReader,
+    fs::{AppName, CredentialsFile, CredentialsFileLoader, CredentialsFileStorer},
+    model::{Credentials, Password, Profile},
+};
+
+use demo_styles::{Colours, Logo, Prompt};
+
+mod demo_styles;
+
+/// Application name
+const CREDENT: AppName<'_> = AppName("credent");
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("{}", Logo::ascii_coloured());
+
+    let result = smol::block_on(async {
+        let profile_name = get_profile_name()?;
+        let credentials = match existing_credentials(&profile_name).await? {
+            Some(credentials) => credentials,
+            None => prompt_and_save_credentials(profile_name.clone()).await?,
+        };
+        println!("");
+
+        output_profile_name(&profile_name);
+        output_credentials(&credentials);
+        output_password(&credentials.password);
+
+        Result::<(), Box<dyn std::error::Error>>::Ok(())
+    });
+
+    if let Err(e) = result {
+        eprintln!(
+            "{error} {message}",
+            error = Colours::error_label().apply("Error:"),
+            message = e
+        );
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+fn get_profile_name() -> Result<String, String> {
+    let mut args = env::args();
+
+    let full_path = args.next().map(PathBuf::from);
+    let exe_name = full_path
+        .as_ref()
+        .map(|full_path| full_path.file_name())
+        .flatten()
+        .map(OsStr::to_str)
+        .flatten()
+        .unwrap_or("profiles");
+
+    match args.next().as_deref() {
+        Some("--profile") => {
+            if let Some(profile_name) = args.next() {
+                Ok(profile_name)
+            } else {
+                let message = format!(
+                    "\
+                    Profile name must be specified.\n\
+                    \n\
+                    {arrow}{exe_name} --profile {profile_placeholder}\n\
+                    {indent}{highlight:>pad$}\n\
+                    ",
+                    arrow = Colours::prompt_label().apply("> "),
+                    exe_name = exe_name,
+                    profile_placeholder = Colours::error_label().apply(".."),
+                    indent = "  ",
+                    highlight = Colours::error_label().apply("^^^^^^^^^^^^"),
+                    pad = exe_name.len() + " --profile ".len() + "^^".len()
+                );
+                Err(message)
+            }
+        }
+        None => Ok(Profile::DEFAULT_NAME.to_string()),
+        Some(arg) => {
+            let highlight_str = "^".repeat(arg.len());
+
+            let message = format!(
+                "\
+                Invalid argument in command line.\n\
+                \n\
+                {arrow}{exe_name} {arg}\n\
+                {indent}{highlight:>pad$}\n\
+                ",
+                arrow = Colours::prompt_label().apply("> "),
+                exe_name = exe_name,
+                arg = arg,
+                indent = "  ",
+                highlight = Colours::error_label().apply(highlight_str),
+                pad = exe_name.len() + 1 + arg.len()
+            );
+            Err(message)
+        }
+    }
+}
+
+async fn existing_credentials(
+    profile_name: &str,
+) -> Result<Option<Credentials>, Box<dyn std::error::Error>> {
+    let profile = CredentialsFileLoader::load_profile(CREDENT, profile_name).await?;
+    if profile.is_some() {
+        println!(
+            "{note} Read existing credentials from `{path}`.",
+            note = Colours::informative_label().apply("Note:"),
+            path = Colours::informative_value().apply(CredentialsFile::path(CREDENT)?.display()),
+        );
+
+        Ok(profile.map(|profile| profile.credentials))
+    } else {
+        Ok(None)
+    }
+}
+
+async fn prompt_and_save_credentials(
+    profile_name: String,
+) -> Result<Credentials, Box<dyn std::error::Error>> {
+    let credentials_cli_reader = CredentialsCliReader {
+        username_prompt: Prompt::username(),
+        password_prompt: Prompt::password(),
+    };
+
+    let credentials = credentials_cli_reader.prompt_from_tty().await?;
+    println!("");
+
+    let profile = Profile::new(profile_name, credentials);
+    CredentialsFileStorer::store(CREDENT, &profile).await?;
+
+    println!(
+        "{note} Stored credentials in `{path}`.",
+        note = Colours::informative_label().apply("Note:"),
+        path = Colours::informative_value().apply(CredentialsFile::path(CREDENT)?.display()),
+    );
+
+    Ok(profile.credentials)
+}
+
+fn output_profile_name(profile_name: &str) {
+    println!(
+        "{l}{profile}{r}",
+        l = Colours::prompt_label().apply("["),
+        profile = Colours::prompt_label().apply(profile_name),
+        r = Colours::prompt_label().apply("]"),
+    );
+}
+
+fn output_credentials(credentials: &Credentials) {
+    println!("{}", Colours::output_label().apply("credentials:"),);
+    println!(
+        "  {hint:-12}: {value}",
+        hint = Colours::output_hint().apply("to_string()"),
+        value = credentials
+    );
+    println!(
+        "  {hint:-12}: {value:?}",
+        hint = Colours::output_hint().apply("debug"),
+        value = credentials
+    );
+    println!("");
+}
+
+fn output_password(password: &Password) {
+    println!("{}", Colours::output_label().apply("password:"),);
+    println!(
+        "  {hint:-12}: {value}",
+        hint = Colours::output_hint().apply("to_string()"),
+        value = password
+    );
+    println!(
+        "  {hint:-12}: {value}",
+        hint = Colours::output_hint().apply("encoded()"),
+        value = password.encoded()
+    );
+    println!(
+        "  {hint:-12}: {value}",
+        hint = Colours::output_hint().apply("plain_text()"),
+        value = password.plain_text()
+    );
+}

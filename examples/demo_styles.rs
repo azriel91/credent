@@ -96,6 +96,16 @@ impl Colours {
             attributes: Attributes::from(Attribute::NormalIntensity),
         }
     }
+
+    /// Error label colour.
+    #[allow(dead_code)]
+    pub fn error_label() -> ContentStyle {
+        ContentStyle {
+            foreground_color: Some(Color::Red),
+            background_color: None,
+            attributes: Attributes::from(Attribute::Bold),
+        }
+    }
 }
 
 /// Text representation of the Credent Logo.
