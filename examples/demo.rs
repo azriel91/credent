@@ -1,6 +1,6 @@
 #![deny(missing_debug_implementations, missing_docs)]
 
-//! Control Credent from the command line.
+//! Reads credentials from file, or prompts the user if they don't exist.
 //!
 //! ```text,ignore
 //!                _         _
@@ -26,21 +26,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", Logo::ascii_coloured());
 
     smol::block_on(async {
-        let credentials = match default_profile_credentials().await? {
+        let credentials = match existing_credentials().await? {
             Some(credentials) => credentials,
             None => prompt_and_save_credentials().await?,
         };
         println!("");
 
         output_credentials(&credentials);
-        println!("");
         output_password(&credentials.password);
 
         Result::<(), Box<dyn std::error::Error>>::Ok(())
     })
 }
 
-async fn default_profile_credentials() -> Result<Option<Credentials>, Box<dyn std::error::Error>> {
+async fn existing_credentials() -> Result<Option<Credentials>, Box<dyn std::error::Error>> {
     let profile = CredentialsFileLoader::load(CREDENT).await?;
     if profile.is_some() {
         println!(
@@ -62,10 +61,11 @@ async fn prompt_and_save_credentials() -> Result<Credentials, Box<dyn std::error
     };
 
     let credentials = credentials_cli_reader.prompt_from_tty().await?;
+    println!("");
+
     let profile = Profile::new_default(credentials);
     CredentialsFileStorer::store(CREDENT, &profile).await?;
 
-    println!("");
     println!(
         "{note} Stored credentials in `{path}`.",
         note = Colours::informative_label().apply("Note:"),
@@ -87,6 +87,7 @@ fn output_credentials(credentials: &Credentials) {
         hint = Colours::output_hint().apply("debug"),
         value = credentials
     );
+    println!("");
 }
 
 fn output_password(password: &Password) {
