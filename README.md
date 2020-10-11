@@ -37,4 +37,6 @@ More sample code can be seen in the [examples](examples).
 ```
 cargo run --example simple
 cargo run --example demo
+cargo run --example profiles
+cargo run --example profiles -- --profile development
 ```
