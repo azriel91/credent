@@ -15,8 +15,8 @@ credent_fs = { path = "crate/credent_fs" }
 credent_model = { path = "crate/credent_model" }
 
 [dev-dependencies]
-crossterm = "0.17.7"
-smol = "0.3.3"
+crossterm = "0.18.0"
+smol = "1.2.4"
 
 [features]
 default = ["base64", "serde"]

@@ -33,7 +33,11 @@ impl CredentialsFileStorer {
     pub async fn store_file(profile: &Profile, credentials_path: &Path) -> Result<(), Error> {
         let profiles_existing = Self::profiles_existing(credentials_path).await?;
         let mut profiles = profiles_existing.unwrap_or_else(Profiles::new);
-        profiles.insert(profile.clone());
+
+        // [`BTreeSet::insert`] does not replace the value if the `Ordering` is the
+        // same, which it is for `Profile`s with the same name, even if the
+        // username or password differ.
+        profiles.replace(profile.clone());
 
         let profiles_contents = Self::profiles_serialize(&profiles)?;
 

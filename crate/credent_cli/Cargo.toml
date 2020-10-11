@@ -11,5 +11,5 @@ doctest = false
 
 [dependencies]
 rpassword = "5.0.0"
-smol = "0.3.3"
+smol = "1.2.4"
 credent_model = { path = "../credent_model" }
