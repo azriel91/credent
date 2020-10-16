@@ -10,7 +10,7 @@
 //! |___|_| |___|___|___|_|_|_|
 //! ```
 
-use std::{env, ffi::OsStr, path::PathBuf};
+use std::{env, env::Args, ffi::OsStr, fmt::Write, path::PathBuf};
 
 use credent::{
     cli::CredentialsCliReader,
@@ -67,48 +67,69 @@ fn get_profile_name() -> Result<String, String> {
         .unwrap_or("profiles");
 
     match args.next().as_deref() {
-        Some("--profile") => {
-            if let Some(profile_name) = args.next() {
-                Ok(profile_name)
-            } else {
-                let message = format!(
-                    "\
-                    Profile name must be specified.\n\
-                    \n\
-                    {arrow}{exe_name} --profile {profile_placeholder}\n\
-                    {indent}{highlight:>pad$}\n\
-                    ",
-                    arrow = Colours::prompt_label().apply("> "),
-                    exe_name = exe_name,
-                    profile_placeholder = Colours::error_label().apply(".."),
-                    indent = "  ",
-                    highlight = Colours::error_label().apply("^^^^^^^^^^^^"),
-                    pad = exe_name.len() + " --profile ".len() + "^^".len()
-                );
-                Err(message)
-            }
-        }
         None => Ok(Profile::DEFAULT_NAME.to_string()),
-        Some(arg) => {
-            let highlight_str = "^".repeat(arg.len());
+        Some("--profile") => next_arg_as_profile(exe_name, args.next()),
+        Some(unknown_arg) => {
+            let message =
+                handle_unknown_arg(exe_name, unknown_arg, args).map_err(|e| format!("{}", e))?;
 
-            let message = format!(
-                "\
-                Invalid argument in command line.\n\
-                \n\
-                {arrow}{exe_name} {arg}\n\
-                {indent}{highlight:>pad$}\n\
-                ",
-                arrow = Colours::prompt_label().apply("> "),
-                exe_name = exe_name,
-                arg = arg,
-                indent = "  ",
-                highlight = Colours::error_label().apply(highlight_str),
-                pad = exe_name.len() + 1 + arg.len()
-            );
             Err(message)
         }
     }
+}
+
+fn next_arg_as_profile(exe_name: &str, next_arg: Option<String>) -> Result<String, String> {
+    if let Some(profile_name) = next_arg {
+        Ok(profile_name)
+    } else {
+        let message = format!(
+            "\
+            Profile name must be specified.\n\
+            \n\
+            {arrow}{exe_name} --profile {profile_placeholder}\n\
+            {indent}{highlight:>pad$}\n\
+            ",
+            arrow = Colours::prompt_label().apply("> "),
+            exe_name = exe_name,
+            profile_placeholder = Colours::error_label().apply(".."),
+            indent = "  ",
+            highlight = Colours::error_label().apply("^^^^^^^^^^^^"),
+            pad = exe_name.len() + " --profile ".len() + "^^".len()
+        );
+        Err(message)
+    }
+}
+
+fn handle_unknown_arg(
+    exe_name: &str,
+    unknown_arg: &str,
+    mut args: Args,
+) -> Result<String, std::fmt::Error> {
+    let highlight_str = "^".repeat(unknown_arg.len());
+    let mut message = String::with_capacity(512);
+    let buffer = &mut message;
+    writeln!(buffer, "Invalid argument in command line.")?;
+    writeln!(buffer)?;
+
+    write!(
+        buffer,
+        "{arrow}{exe_name} {unknown_arg}",
+        arrow = Colours::prompt_label().apply("> "),
+        exe_name = exe_name,
+        unknown_arg = unknown_arg
+    )?;
+    args.try_for_each(|arg| write!(buffer, " {}", arg))?;
+    writeln!(buffer)?;
+
+    writeln!(
+        buffer,
+        "{indent}{highlight:>pad$}",
+        indent = "  ",
+        highlight = Colours::error_label().apply(highlight_str),
+        pad = exe_name.len() + 1 + unknown_arg.len()
+    )?;
+
+    Ok(message)
 }
 
 async fn existing_credentials(
