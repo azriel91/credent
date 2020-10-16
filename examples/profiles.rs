@@ -89,8 +89,8 @@ fn get_profile_name() -> Result<String, String> {
             }
         }
         None => Ok(Profile::DEFAULT_NAME.to_string()),
-        Some(arg) => {
-            let highlight_str = "^".repeat(arg.len());
+        Some(unknown_arg) => {
+            let highlight_str = "^".repeat(unknown_arg.len());
 
             let message = format!(
                 "\
@@ -101,10 +101,10 @@ fn get_profile_name() -> Result<String, String> {
                 ",
                 arrow = Colours::prompt_label().apply("> "),
                 exe_name = exe_name,
-                arg = arg,
+                arg = unknown_arg,
                 indent = "  ",
                 highlight = Colours::error_label().apply(highlight_str),
-                pad = exe_name.len() + 1 + arg.len()
+                pad = exe_name.len() + 1 + unknown_arg.len()
             );
             Err(message)
         }
