@@ -10,7 +10,7 @@
 //! |___|_| |___|___|___|_|_|_|
 //! ```
 
-use std::{env, ffi::OsStr, path::PathBuf};
+use std::{env, env::Args, ffi::OsStr, fmt::Write, path::PathBuf};
 
 use credent::{
     cli::CredentialsCliReader,
@@ -69,7 +69,12 @@ fn get_profile_name() -> Result<String, String> {
     match args.next().as_deref() {
         None => Ok(Profile::DEFAULT_NAME.to_string()),
         Some("--profile") => next_arg_as_profile(exe_name, args.next()),
-        Some(unknown_arg) => handle_unknown_arg(exe_name, unknown_arg),
+        Some(unknown_arg) => {
+            let message =
+                handle_unknown_arg(exe_name, unknown_arg, args).map_err(|e| format!("{}", e))?;
+
+            Err(message)
+        }
     }
 }
 
@@ -95,24 +100,36 @@ fn next_arg_as_profile(exe_name: &str, next_arg: Option<String>) -> Result<Strin
     }
 }
 
-fn handle_unknown_arg(exe_name: &str, unknown_arg: &str) -> Result<String, String> {
+fn handle_unknown_arg(
+    exe_name: &str,
+    unknown_arg: &str,
+    mut args: Args,
+) -> Result<String, std::fmt::Error> {
     let highlight_str = "^".repeat(unknown_arg.len());
+    let mut message = String::with_capacity(512);
+    let buffer = &mut message;
+    writeln!(buffer, "Invalid argument in command line.")?;
+    writeln!(buffer)?;
 
-    let message = format!(
-        "\
-        Invalid argument in command line.\n\
-        \n\
-        {arrow}{exe_name} {arg}\n\
-        {indent}{highlight:>pad$}\n\
-        ",
+    write!(
+        buffer,
+        "{arrow}{exe_name} {unknown_arg}",
         arrow = Colours::prompt_label().apply("> "),
         exe_name = exe_name,
-        arg = unknown_arg,
+        unknown_arg = unknown_arg
+    )?;
+    args.try_for_each(|arg| write!(buffer, " {}", arg))?;
+    writeln!(buffer)?;
+
+    writeln!(
+        buffer,
+        "{indent}{highlight:>pad$}",
         indent = "  ",
         highlight = Colours::error_label().apply(highlight_str),
         pad = exe_name.len() + 1 + unknown_arg.len()
-    );
-    Err(message)
+    )?;
+
+    Ok(message)
 }
 
 async fn existing_credentials(
