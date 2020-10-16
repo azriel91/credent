@@ -67,6 +67,7 @@ fn get_profile_name() -> Result<String, String> {
         .unwrap_or("profiles");
 
     match args.next().as_deref() {
+        None => Ok(Profile::DEFAULT_NAME.to_string()),
         Some("--profile") => {
             if let Some(profile_name) = args.next() {
                 Ok(profile_name)
@@ -88,7 +89,6 @@ fn get_profile_name() -> Result<String, String> {
                 Err(message)
             }
         }
-        None => Ok(Profile::DEFAULT_NAME.to_string()),
         Some(unknown_arg) => {
             let highlight_str = "^".repeat(unknown_arg.len());
 
