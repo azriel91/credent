@@ -68,47 +68,51 @@ fn get_profile_name() -> Result<String, String> {
 
     match args.next().as_deref() {
         None => Ok(Profile::DEFAULT_NAME.to_string()),
-        Some("--profile") => {
-            if let Some(profile_name) = args.next() {
-                Ok(profile_name)
-            } else {
-                let message = format!(
-                    "\
-                    Profile name must be specified.\n\
-                    \n\
-                    {arrow}{exe_name} --profile {profile_placeholder}\n\
-                    {indent}{highlight:>pad$}\n\
-                    ",
-                    arrow = Colours::prompt_label().apply("> "),
-                    exe_name = exe_name,
-                    profile_placeholder = Colours::error_label().apply(".."),
-                    indent = "  ",
-                    highlight = Colours::error_label().apply("^^^^^^^^^^^^"),
-                    pad = exe_name.len() + " --profile ".len() + "^^".len()
-                );
-                Err(message)
-            }
-        }
-        Some(unknown_arg) => {
-            let highlight_str = "^".repeat(unknown_arg.len());
-
-            let message = format!(
-                "\
-                Invalid argument in command line.\n\
-                \n\
-                {arrow}{exe_name} {arg}\n\
-                {indent}{highlight:>pad$}\n\
-                ",
-                arrow = Colours::prompt_label().apply("> "),
-                exe_name = exe_name,
-                arg = unknown_arg,
-                indent = "  ",
-                highlight = Colours::error_label().apply(highlight_str),
-                pad = exe_name.len() + 1 + unknown_arg.len()
-            );
-            Err(message)
-        }
+        Some("--profile") => next_arg_as_profile(exe_name, args.next()),
+        Some(unknown_arg) => handle_unknown_arg(exe_name, unknown_arg),
     }
+}
+
+fn next_arg_as_profile(exe_name: &str, next_arg: Option<String>) -> Result<String, String> {
+    if let Some(profile_name) = next_arg {
+        Ok(profile_name)
+    } else {
+        let message = format!(
+            "\
+            Profile name must be specified.\n\
+            \n\
+            {arrow}{exe_name} --profile {profile_placeholder}\n\
+            {indent}{highlight:>pad$}\n\
+            ",
+            arrow = Colours::prompt_label().apply("> "),
+            exe_name = exe_name,
+            profile_placeholder = Colours::error_label().apply(".."),
+            indent = "  ",
+            highlight = Colours::error_label().apply("^^^^^^^^^^^^"),
+            pad = exe_name.len() + " --profile ".len() + "^^".len()
+        );
+        Err(message)
+    }
+}
+
+fn handle_unknown_arg(exe_name: &str, unknown_arg: &str) -> Result<String, String> {
+    let highlight_str = "^".repeat(unknown_arg.len());
+
+    let message = format!(
+        "\
+        Invalid argument in command line.\n\
+        \n\
+        {arrow}{exe_name} {arg}\n\
+        {indent}{highlight:>pad$}\n\
+        ",
+        arrow = Colours::prompt_label().apply("> "),
+        exe_name = exe_name,
+        arg = unknown_arg,
+        indent = "  ",
+        highlight = Colours::error_label().apply(highlight_str),
+        pad = exe_name.len() + 1 + unknown_arg.len()
+    );
+    Err(message)
 }
 
 async fn existing_credentials(
