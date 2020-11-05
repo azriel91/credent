@@ -15,9 +15,9 @@ test = false
 doctest = false
 
 [dependencies]
-credent_cli = { path = "crate/credent_cli" }
-credent_fs = { path = "crate/credent_fs" }
-credent_model = { path = "crate/credent_model" }
+credent_cli = { version = "0.1.0", path = "crate/credent_cli" }
+credent_fs = { version = "0.1.0", path = "crate/credent_fs" }
+credent_model = { version = "0.1.0", path = "crate/credent_model" }
 
 [dev-dependencies]
 crossterm = "0.18.2"
