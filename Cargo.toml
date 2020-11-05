@@ -20,7 +20,7 @@ credent_fs = { path = "crate/credent_fs" }
 credent_model = { path = "crate/credent_model" }
 
 [dev-dependencies]
-crossterm = "0.18.0"
+crossterm = "0.18.2"
 smol = "1.2.4"
 
 [features]
