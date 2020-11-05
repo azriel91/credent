@@ -1,7 +1,7 @@
 # Credent
 
 [![Crates.io](https://img.shields.io/crates/v/credent.svg)](https://crates.io/crates/credent)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/azriel91/credent?branch=main&svg=true)](https://ci.appveyor.com/project/azriel91/credent/branch/main)
+![CI](https://github.com/azriel91/credent/workflows/CI/badge.svg)
 [![Coverage Status](https://codecov.io/gh/azriel91/credent/branch/main/graph/badge.svg)](https://codecov.io/gh/azriel91/credent)
 
 Manages `~/.config/<app>/credentials`.
