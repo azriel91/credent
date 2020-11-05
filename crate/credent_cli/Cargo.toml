@@ -1,9 +1,14 @@
 [package]
 name = "credent_cli"
 version = "0.1.0"
-description = "Reads in credentials from the CLI."
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2018"
+description = "Reads in credentials from the CLI."
+repository = "https://github.com/azriel91/credent"
+documentation = "https://docs.rs/credent/"
+readme = "../../README.md"
+keywords = ["credentials", "profile"]
+license = "MIT OR Apache-2.0"
 
 [lib]
 test = false
