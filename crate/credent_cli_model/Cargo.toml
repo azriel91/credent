@@ -16,7 +16,8 @@ doctest = false
 
 [dependencies]
 smol = { version = "1.2.5", optional = true }
+tokio = { version = "1.4.0", optional = true }
 
 [features]
-default = ["backend-smol"]
 backend-smol = ["smol"]
+backend-tokio = ["tokio", "tokio/io-std", "tokio/rt"]

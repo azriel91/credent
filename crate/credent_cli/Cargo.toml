@@ -17,10 +17,11 @@ doctest = false
 [dependencies]
 rpassword = "5.0.0"
 smol = { version = "1.2.5", optional = true }
+tokio = { version = "1.4.0", optional = true }
 
 credent_cli_model = { version = "0.3.0", path = "../credent_cli_model", default-features = false }
 credent_model = { version = "0.3.0", path = "../credent_model" }
 
 [features]
-default = ["backend-smol"]
 backend-smol = ["credent_cli_model/backend-smol", "smol"]
+backend-tokio = ["credent_cli_model/backend-tokio", "tokio", "tokio/io-std", "tokio/io-util", "tokio/rt"]

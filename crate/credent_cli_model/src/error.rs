@@ -3,8 +3,8 @@ use std::fmt;
 #[cfg(feature = "smol")]
 type IoError = smol::io::Error;
 
-#[cfg(not(feature = "smol"))]
-type IoError = std::io::Error;
+#[cfg(feature = "tokio")]
+type IoError = tokio::io::Error;
 
 /// Errors when using `credenti_cli`.
 #[derive(Debug)]
@@ -22,6 +22,10 @@ pub enum Error {
     UsernameRead(std::io::Error),
     /// Failed to read password.
     PasswordRead(std::io::Error),
+
+    /// Tokio blocking task join error.
+    #[cfg(feature = "tokio")]
+    StdinReadJoin(tokio::task::JoinError),
 }
 
 impl fmt::Display for Error {
@@ -33,6 +37,9 @@ impl fmt::Display for Error {
             Self::StdErrFlush(..) => write!(f, "Failed to flush `stderr`."),
             Self::UsernameRead(..) => write!(f, "Failed to read username."),
             Self::PasswordRead(..) => write!(f, "Failed to read password."),
+
+            #[cfg(feature = "tokio")]
+            Self::StdinReadJoin(_) => write!(f, "Failed to wait for stdin task to complete."),
         }
     }
 }
@@ -44,6 +51,9 @@ impl std::error::Error for Error {
             Self::StdErrFlush(error) => Some(error),
             Self::UsernameRead(error) => Some(error),
             Self::PasswordRead(error) => Some(error),
+
+            #[cfg(feature = "tokio")]
+            Self::StdinReadJoin(error) => Some(error),
         }
     }
 }

@@ -28,6 +28,7 @@ default = ["base64", "serde"]
 base64 = ["credent_fs/base64", "credent_model/base64"]
 serde = ["credent_model/serde"]
 backend-smol = ["credent_cli/backend-smol"]
+backend-tokio = ["credent_cli/backend-tokio"]
 
 [workspace]
 members = ["crate/*"]
