@@ -1,17 +1,17 @@
-use std::{
-    fmt::{self, Display},
-    path::PathBuf,
-};
+use std::{fmt, path::PathBuf};
 
-use credent_model::Profiles;
+use credent_model::{Credentials, Profiles};
 
 /// Errors when reading the user credentials file.
 #[derive(Debug)]
-pub enum Error {
+pub enum Error<C = Credentials>
+where
+    C: Clone + Eq,
+{
     /// Unable to determine user configuration directory.
     UserConfigDirNotFound,
     /// Failed to create the parent directory of the credentials file.
-    CredentialsParentDirFailedToCreate {
+    CredentialsParentDirCreate {
         /// Path to the user credentials file.
         parent_path: PathBuf,
         /// The underlying IO error.
@@ -28,42 +28,45 @@ pub enum Error {
         credentials_path: PathBuf,
     },
     /// Failed to read from the user credentials file.
-    CredentialsFileFailedToRead {
+    CredentialsFileRead {
         /// Path to the user credentials file.
         credentials_path: PathBuf,
         /// The underlying IO error.
         io_error: std::io::Error,
     },
     /// Failed to write to the user credentials file.
-    CredentialsFileFailedToWrite {
+    CredentialsFileWrite {
         /// Path to the user credentials file.
         credentials_path: PathBuf,
         /// The underlying IO error.
         io_error: std::io::Error,
     },
     /// Failed to deserialize user credentials file contents.
-    CredentialsFileFailedToDeserialize {
+    CredentialsFileDeserialize {
         /// Path to the user credentials file.
         credentials_path: PathBuf,
         /// The underlying TOML error.
         toml_de_error: toml::de::Error,
     },
     /// Failed to serialize user credentials.
-    CredentialsFileFailedToSerialize {
+    CredentialsFileSerialize {
         /// Profiles which failed to be serialized.
-        profiles: Profiles,
+        profiles: Profiles<C>,
         /// The underlying TOML error.
         toml_ser_error: toml::ser::Error,
     },
 }
 
-impl Display for Error {
+impl<C> fmt::Display for Error<C>
+where
+    C: Clone + Eq + fmt::Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::UserConfigDirNotFound => {
                 write!(f, "Unable to determine user configuration directory.")
             }
-            Self::CredentialsParentDirFailedToCreate {
+            Self::CredentialsParentDirCreate {
                 parent_path,
                 io_error,
             } => write!(
@@ -84,7 +87,7 @@ impl Display for Error {
                 "User credentials file should be a file, but it is a directory. Path: `{}`",
                 credentials_path.display()
             ),
-            Self::CredentialsFileFailedToRead {
+            Self::CredentialsFileRead {
                 credentials_path,
                 io_error,
             } => write!(
@@ -95,7 +98,7 @@ impl Display for Error {
                 credentials_path.display(),
                 io_error
             ),
-            Self::CredentialsFileFailedToWrite {
+            Self::CredentialsFileWrite {
                 credentials_path,
                 io_error,
             } => write!(
@@ -106,7 +109,7 @@ impl Display for Error {
                 credentials_path.display(),
                 io_error
             ),
-            Self::CredentialsFileFailedToDeserialize {
+            Self::CredentialsFileDeserialize {
                 credentials_path,
                 toml_de_error,
             } => write!(
@@ -117,7 +120,7 @@ impl Display for Error {
                 credentials_path.display(),
                 toml_de_error
             ),
-            Self::CredentialsFileFailedToSerialize {
+            Self::CredentialsFileSerialize {
                 profiles,
                 toml_ser_error,
             } => write!(
@@ -131,4 +134,4 @@ impl Display for Error {
     }
 }
 
-impl std::error::Error for Error {}
+impl<C> std::error::Error for Error<C> where C: Clone + Eq + fmt::Debug {}

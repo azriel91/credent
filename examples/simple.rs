@@ -4,12 +4,15 @@
 
 use credent::{
     cli::CredentialsCliReader,
-    fs::{model::AppName, CredentialsFile, CredentialsFileStorer},
+    fs::{model::AppName, CredentialsFileStorer},
     model::Profile,
 };
+use credent_model::Credentials;
 
 /// Application name
 const CREDENT: AppName<'_> = AppName("credent");
+
+type CredentialsFile = credent::fs::CredentialsFile<Credentials>;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     smol::block_on(async {

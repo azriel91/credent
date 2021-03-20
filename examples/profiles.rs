@@ -14,8 +14,8 @@ use std::{env, env::Args, ffi::OsStr, fmt::Write, path::PathBuf};
 
 use credent::{
     cli::CredentialsCliReader,
-    fs::{model::AppName, CredentialsFile, CredentialsFileLoader, CredentialsFileStorer},
-    model::{Credentials, Password, Profile},
+    fs::{model::AppName, CredentialsFileLoader, CredentialsFileStorer},
+    model::{Credentials, Password},
 };
 
 use demo_styles::{Colours, Logo, Prompt};
@@ -24,6 +24,9 @@ mod demo_styles;
 
 /// Application name
 const CREDENT: AppName<'_> = AppName("credent");
+
+type CredentialsFile = credent::fs::CredentialsFile<Credentials>;
+type Profile = credent::model::Profile<Credentials>;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", Logo::ascii_coloured());

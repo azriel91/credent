@@ -1,15 +1,19 @@
-use std::path::Path;
+use std::{marker::PhantomData, path::Path};
 
 use credent_fs_model::{AppName, Error};
-use credent_model::{Profile, Profiles};
+use credent_model::{Credentials, Profile, Profiles};
+use serde::Deserialize;
 
 use crate::CredentialsFile;
 
 /// Reads credentials from the user's configuration directory.
 #[derive(Debug)]
-pub struct CredentialsFileLoader;
+pub struct CredentialsFileLoader<C = Credentials>(PhantomData<C>);
 
-impl CredentialsFileLoader {
+impl<C> CredentialsFileLoader<C>
+where
+    C: Clone + Eq + for<'de> Deserialize<'de>,
+{
     /// Returns the default profile credentials stored in the user's
     /// configuration directory.
     ///
@@ -22,10 +26,10 @@ impl CredentialsFileLoader {
     /// # Parameters
     ///
     /// * `app_name`: Name of the application whose credentials to load.
-    pub async fn load(app_name: AppName<'_>) -> Result<Option<Profile>, Error> {
-        let credentials_path = CredentialsFile::path(app_name)?;
+    pub async fn load(app_name: AppName<'_>) -> Result<Option<Profile<C>>, Error<C>> {
+        let credentials_path = CredentialsFile::<C>::path(app_name)?;
         if credentials_path.exists() {
-            Self::load_profile(app_name, Profile::DEFAULT_NAME).await
+            Self::load_profile(app_name, Profile::<C>::DEFAULT_NAME).await
         } else {
             Ok(None)
         }
@@ -47,7 +51,7 @@ impl CredentialsFileLoader {
     pub async fn load_profile(
         app_name: AppName<'_>,
         profile_name: &str,
-    ) -> Result<Option<Profile>, Error> {
+    ) -> Result<Option<Profile<C>>, Error<C>> {
         Self::load_all(app_name)
             .await
             .map(|profiles_result| {
@@ -73,8 +77,8 @@ impl CredentialsFileLoader {
     /// # Parameters
     ///
     /// * `app_name`: Name of the application whose credentials to load.
-    pub async fn load_all(app_name: AppName<'_>) -> Result<Option<Profiles>, Error> {
-        let credentials_path = CredentialsFile::path(app_name)?;
+    pub async fn load_all(app_name: AppName<'_>) -> Result<Option<Profiles<C>>, Error<C>> {
+        let credentials_path = CredentialsFile::<C>::path(app_name)?;
         if credentials_path.exists() {
             Self::load_file(credentials_path.as_ref()).await.map(Some)
         } else {
@@ -87,7 +91,7 @@ impl CredentialsFileLoader {
     /// # Parameters
     ///
     /// * `credentials_path`: File to load credentials from.
-    pub async fn load_file(credentials_path: &Path) -> Result<Profiles, Error> {
+    pub async fn load_file(credentials_path: &Path) -> Result<Profiles<C>, Error<C>> {
         if !credentials_path.exists() {
             let credentials_path = credentials_path.to_owned();
             Err(Error::CredentialsFileNonExistent { credentials_path })
@@ -100,10 +104,10 @@ impl CredentialsFileLoader {
         }
     }
 
-    async fn credentials_file_read(credentials_path: &Path) -> Result<Vec<u8>, Error> {
+    async fn credentials_file_read(credentials_path: &Path) -> Result<Vec<u8>, Error<C>> {
         async_fs::read(credentials_path).await.map_err(|io_error| {
             let credentials_path = credentials_path.to_owned();
-            Error::CredentialsFileFailedToRead {
+            Error::CredentialsFileRead {
                 credentials_path,
                 io_error,
             }
@@ -113,10 +117,10 @@ impl CredentialsFileLoader {
     fn credentials_deserialize(
         profiles_contents: Vec<u8>,
         credentials_path: &Path,
-    ) -> Result<Profiles, Error> {
+    ) -> Result<Profiles<C>, Error<C>> {
         toml::from_slice(&profiles_contents).map_err(|toml_de_error| {
             let credentials_path = credentials_path.to_owned();
-            Error::CredentialsFileFailedToDeserialize {
+            Error::CredentialsFileDeserialize {
                 credentials_path,
                 toml_de_error,
             }
