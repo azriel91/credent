@@ -1,11 +1,16 @@
 [plain_text]
 workspace = true
 no-default-features = true
+features = "backend-smol"
 
 [base64]
 workspace = true
 no-default-features = true
-features = "base64"
+features = "base64 backend-smol"
+
+[tokio]
+workspace = true
+features = "base64 backend-tokio"
 
 [report]
 out = ["Html", "Xml"]
