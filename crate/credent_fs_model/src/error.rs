@@ -66,13 +66,10 @@ where
             Self::UserConfigDirNotFound => {
                 write!(f, "Unable to determine user configuration directory.")
             }
-            Self::CredentialsParentDirCreate { parent_path, error } => write!(
+            Self::CredentialsParentDirCreate { parent_path, .. } => write!(
                 f,
-                "Failed to create credentials file parent directory.\n\
-                Path: `{}`\n\
-                Error: `{}`",
-                parent_path.display(),
-                error
+                "Failed to create credentials file parent directory. Path: `{}`",
+                parent_path.display()
             ),
             Self::CredentialsFileNonExistent { credentials_path } => write!(
                 f,
@@ -85,47 +82,49 @@ where
                 credentials_path.display()
             ),
             Self::CredentialsFileRead {
-                credentials_path,
-                error,
+                credentials_path, ..
             } => write!(
                 f,
-                "User credentials file failed to be read.\n\
-                Path: `{}`\n\
-                Error: `{}`",
-                credentials_path.display(),
-                error
+                "User credentials file failed to be read. Path: `{}`",
+                credentials_path.display()
             ),
             Self::CredentialsFileWrite {
-                credentials_path,
-                error,
+                credentials_path, ..
             } => write!(
                 f,
-                "User credentials file failed to be read.\n\
-                Path: `{}`\n\
-                Error: `{}`",
-                credentials_path.display(),
-                error
+                "User credentials file failed to be read. Path: `{}`",
+                credentials_path.display()
             ),
             Self::CredentialsFileDeserialize {
-                credentials_path,
-                error,
+                credentials_path, ..
             } => write!(
                 f,
-                "User credentials file failed to be deserialized.\n\
-                Path: `{}`\n\
-                Error: `{}`",
-                credentials_path.display(),
-                error
+                "User credentials file failed to be deserialized. Path: `{}`",
+                credentials_path.display()
             ),
-            Self::CredentialsFileSerialize { profiles, error } => write!(
+            Self::CredentialsFileSerialize { profiles, .. } => write!(
                 f,
-                "User credentials failed to be serialized.\n\
-                Profiles: `{:?}`\n\
-                Error: `{}`",
-                profiles, error
+                "User credentials failed to be serialized. Profiles: `{:?}`",
+                profiles
             ),
         }
     }
 }
 
-impl<C> std::error::Error for Error<C> where C: Clone + Eq + fmt::Debug {}
+impl<C> std::error::Error for Error<C>
+where
+    C: Clone + Eq + fmt::Debug,
+{
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::UserConfigDirNotFound => None,
+            Self::CredentialsParentDirCreate { error, .. } => Some(error),
+            Self::CredentialsFileNonExistent { .. } => None,
+            Self::CredentialsFileIsDir { .. } => None,
+            Self::CredentialsFileRead { error, .. } => Some(error),
+            Self::CredentialsFileWrite { error, .. } => Some(error),
+            Self::CredentialsFileDeserialize { error, .. } => Some(error),
+            Self::CredentialsFileSerialize { error, .. } => Some(error),
+        }
+    }
+}
