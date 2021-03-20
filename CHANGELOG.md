@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 (2021-03-20)
+
+### Changed
+
+* `credent_model::Profile` is now type parameterized. ([#8])
+* `credent_fs_model::Error` underlying errors are renamed to `error`. ([#8])
+
+[#8]: https://github.com/azriel91/credent/pull/8
+
 ## 0.2.1 (2021-03-20)
 
 ### Changed
