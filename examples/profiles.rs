@@ -28,10 +28,43 @@ const CREDENT: AppName<'_> = AppName("credent");
 type CredentialsFile = credent::fs::CredentialsFile<Credentials>;
 type Profile = credent::model::Profile<Credentials>;
 
+#[cfg(feature = "backend-smol")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", Logo::ascii_coloured());
 
     let result = smol::block_on(async {
+        let profile_name = get_profile_name()?;
+        let credentials = match existing_credentials(&profile_name).await? {
+            Some(credentials) => credentials,
+            None => prompt_and_save_credentials(profile_name.clone()).await?,
+        };
+        println!("");
+
+        output_profile_name(&profile_name);
+        output_credentials(&credentials);
+        output_password(&credentials.password);
+
+        Result::<(), Box<dyn std::error::Error>>::Ok(())
+    });
+
+    if let Err(e) = result {
+        eprintln!(
+            "{error} {message}",
+            error = Colours::error_label().apply("Error:"),
+            message = e
+        );
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+#[cfg(feature = "backend-tokio")]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let rt = tokio::runtime::Runtime::new()?;
+
+    println!("{}", Logo::ascii_coloured());
+
+    let result = rt.block_on(async {
         let profile_name = get_profile_name()?;
         let credentials = match existing_credentials(&profile_name).await? {
             Some(credentials) => credentials,
