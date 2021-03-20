@@ -12,24 +12,24 @@ use crate::Credentials;
 /// environments.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Profile {
+pub struct Profile<C = Credentials> {
     /// Profile name.
     pub name: String,
     /// Credentials for this profile.
-    pub credentials: Credentials,
+    pub credentials: C,
 }
 
-impl Profile {
+impl<C> Profile<C> {
     /// Name given to the *default* profile.
     pub const DEFAULT_NAME: &'static str = "default";
 
     /// Returns a new `Profile`.
-    pub fn new(name: String, credentials: Credentials) -> Self {
+    pub fn new(name: String, credentials: C) -> Self {
         Self { name, credentials }
     }
 
     /// Returns a new `Profile` with the `"default"` name.
-    pub fn new_default(credentials: Credentials) -> Self {
+    pub fn new_default(credentials: C) -> Self {
         Self {
             name: String::from(Self::DEFAULT_NAME),
             credentials,
@@ -42,19 +42,28 @@ impl Profile {
     }
 }
 
-impl PartialOrd for Profile {
-    fn partial_cmp(&self, other: &Profile) -> Option<Ordering> {
+impl<C> PartialOrd for Profile<C>
+where
+    C: Eq,
+{
+    fn partial_cmp(&self, other: &Profile<C>) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Profile {
-    fn cmp(&self, other: &Profile) -> Ordering {
+impl<C> Ord for Profile<C>
+where
+    C: Eq,
+{
+    fn cmp(&self, other: &Profile<C>) -> Ordering {
         self.name.cmp(&other.name)
     }
 }
 
-impl Display for Profile {
+impl<C> Display for Profile<C>
+where
+    C: Display,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -65,7 +74,7 @@ impl Display for Profile {
     }
 }
 
-impl Borrow<str> for Profile {
+impl<C> Borrow<str> for Profile<C> {
     fn borrow(&self) -> &str {
         &self.name
     }
