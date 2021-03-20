@@ -4,7 +4,7 @@
 
 use credent::{
     cli::CredentialsCliReader,
-    fs::{AppName, CredentialsFile, CredentialsFileStorer},
+    fs::{model::AppName, CredentialsFile, CredentialsFileStorer},
     model::Profile,
 };
 

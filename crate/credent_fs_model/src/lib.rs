@@ -2,6 +2,7 @@
 
 //! Data types used when reading credentials from the file system.
 
-pub use crate::error::Error;
+pub use crate::{app_name::AppName, error::Error};
 
+mod app_name;
 mod error;
