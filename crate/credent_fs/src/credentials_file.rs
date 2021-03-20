@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use crate::{AppName, Error};
+use credent_fs_model::Error;
+
+use crate::AppName;
 
 /// Name of the file used to store credentials.
 pub const CREDENTIALS_FILE_NAME: &str = "credentials";

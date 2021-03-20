@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 (unreleased)
+
+### Added
+
+* `credent_fs::Error` type that better indicates what error occurs.
+
 ## 0.1.0 (2020-11-05)
 
 ### Added
