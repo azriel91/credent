@@ -13,7 +13,8 @@ Manages `~/.config/<app>/credentials`.
 ```rust
 use credent::{
     cli::CredentialsCliReader,
-    fs::{AppName, CredentialsFile, CredentialsFileStorer},
+    fs::{model::AppName, CredentialsFile, CredentialsFileStorer},
+    model::Credentials,
 };
 
 /// Application name
@@ -21,14 +22,14 @@ const CREDENT: AppName<'_> = AppName("credent");
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     smol::run(async {
-        let credentials = CredentialsCliReader::read_from_tty().await?;
+        let credentials = CredentialsCliReader::<Credentials>::read_from_tty().await?;
         println!("credentials: {}", credentials);
 
-        CredentialsFileStorer::store(CREDENT, &credentials).await?;
+        CredentialsFileStorer::<Credentials>::store(CREDENT, &credentials).await?;
 
         println!(
             "credentials written to: {}",
-            CredentialsFile::path(CREDENT)?.display()
+            CredentialsFile::<Credentials>::path(CREDENT)?.display()
         );
 
         Result::<(), Box<dyn std::error::Error>>::Ok(())
