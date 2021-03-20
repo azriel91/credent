@@ -11,7 +11,6 @@ keywords = ["credentials", "profile"]
 license = "MIT OR Apache-2.0"
 
 [lib]
-test = false
 doctest = false
 
 [dependencies]
@@ -22,3 +21,10 @@ toml = "0.5.6"
 
 credent_fs_model = { version = "0.2.0", path = "../credent_fs_model" }
 credent_model = { version = "0.2.1", path = "../credent_model", features = ["serde"] }
+
+[dev-dependencies]
+smol = "1.2.5"
+tempfile = "3.2.0"
+
+[features]
+base64 = ["credent_model/base64"]
