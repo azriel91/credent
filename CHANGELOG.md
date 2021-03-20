@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 (2021-03-20)
+
+### Changed
+
+* `credent_fs::AppName` is moved to `credent_fs_model::AppName`. ([#7])
+
+[#7]: https://github.com/azriel91/credent/pull/7
+
 ## 0.2.0 (2021-03-20)
 
 ### Added
