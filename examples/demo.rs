@@ -11,7 +11,7 @@
 
 use credent::{
     cli::CredentialsCliReader,
-    fs::{AppName, CredentialsFile, CredentialsFileLoader, CredentialsFileStorer},
+    fs::{model::AppName, CredentialsFile, CredentialsFileLoader, CredentialsFileStorer},
     model::{Credentials, Password, Profile},
 };
 

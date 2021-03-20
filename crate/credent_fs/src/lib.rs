@@ -3,7 +3,6 @@
 //! Reads / Writes credentials from / to disk.
 
 pub use crate::{
-    app_name::AppName,
     credentials_file::{CredentialsFile, CREDENTIALS_FILE_NAME},
     credentials_file_loader::CredentialsFileLoader,
     credentials_file_storer::CredentialsFileStorer,
@@ -11,7 +10,6 @@ pub use crate::{
 
 pub use credent_fs_model as model;
 
-mod app_name;
 mod credentials_file;
 mod credentials_file_loader;
 mod credentials_file_storer;

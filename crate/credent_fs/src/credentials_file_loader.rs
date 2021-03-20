@@ -1,9 +1,9 @@
 use std::path::Path;
 
-use credent_fs_model::Error;
+use credent_fs_model::{AppName, Error};
 use credent_model::{Profile, Profiles};
 
-use crate::{AppName, CredentialsFile};
+use crate::CredentialsFile;
 
 /// Reads credentials from the user's configuration directory.
 #[derive(Debug)]
