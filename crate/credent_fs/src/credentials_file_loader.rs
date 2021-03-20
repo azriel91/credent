@@ -105,11 +105,11 @@ where
     }
 
     async fn credentials_file_read(credentials_path: &Path) -> Result<Vec<u8>, Error<C>> {
-        async_fs::read(credentials_path).await.map_err(|io_error| {
+        async_fs::read(credentials_path).await.map_err(|error| {
             let credentials_path = credentials_path.to_owned();
             Error::CredentialsFileRead {
                 credentials_path,
-                io_error,
+                error,
             }
         })
     }
@@ -118,11 +118,11 @@ where
         profiles_contents: Vec<u8>,
         credentials_path: &Path,
     ) -> Result<Profiles<C>, Error<C>> {
-        toml::from_slice(&profiles_contents).map_err(|toml_de_error| {
+        toml::from_slice(&profiles_contents).map_err(|error| {
             let credentials_path = credentials_path.to_owned();
             Error::CredentialsFileDeserialize {
                 credentials_path,
-                toml_de_error,
+                error,
             }
         })
     }

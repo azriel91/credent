@@ -15,7 +15,7 @@ where
         /// Path to the user credentials file.
         parent_path: PathBuf,
         /// The underlying IO error.
-        io_error: std::io::Error,
+        error: std::io::Error,
     },
     /// User credentials file does not exist.
     CredentialsFileNonExistent {
@@ -32,28 +32,28 @@ where
         /// Path to the user credentials file.
         credentials_path: PathBuf,
         /// The underlying IO error.
-        io_error: std::io::Error,
+        error: std::io::Error,
     },
     /// Failed to write to the user credentials file.
     CredentialsFileWrite {
         /// Path to the user credentials file.
         credentials_path: PathBuf,
         /// The underlying IO error.
-        io_error: std::io::Error,
+        error: std::io::Error,
     },
     /// Failed to deserialize user credentials file contents.
     CredentialsFileDeserialize {
         /// Path to the user credentials file.
         credentials_path: PathBuf,
         /// The underlying TOML error.
-        toml_de_error: toml::de::Error,
+        error: toml::de::Error,
     },
     /// Failed to serialize user credentials.
     CredentialsFileSerialize {
         /// Profiles which failed to be serialized.
         profiles: Profiles<C>,
         /// The underlying TOML error.
-        toml_ser_error: toml::ser::Error,
+        error: toml::ser::Error,
     },
 }
 
@@ -66,16 +66,13 @@ where
             Self::UserConfigDirNotFound => {
                 write!(f, "Unable to determine user configuration directory.")
             }
-            Self::CredentialsParentDirCreate {
-                parent_path,
-                io_error,
-            } => write!(
+            Self::CredentialsParentDirCreate { parent_path, error } => write!(
                 f,
                 "Failed to create credentials file parent directory.\n\
                 Path: `{}`\n\
                 Error: `{}`",
                 parent_path.display(),
-                io_error
+                error
             ),
             Self::CredentialsFileNonExistent { credentials_path } => write!(
                 f,
@@ -89,46 +86,43 @@ where
             ),
             Self::CredentialsFileRead {
                 credentials_path,
-                io_error,
+                error,
             } => write!(
                 f,
                 "User credentials file failed to be read.\n\
                 Path: `{}`\n\
                 Error: `{}`",
                 credentials_path.display(),
-                io_error
+                error
             ),
             Self::CredentialsFileWrite {
                 credentials_path,
-                io_error,
+                error,
             } => write!(
                 f,
                 "User credentials file failed to be read.\n\
                 Path: `{}`\n\
                 Error: `{}`",
                 credentials_path.display(),
-                io_error
+                error
             ),
             Self::CredentialsFileDeserialize {
                 credentials_path,
-                toml_de_error,
+                error,
             } => write!(
                 f,
                 "User credentials file failed to be deserialized.\n\
                 Path: `{}`\n\
                 Error: `{}`",
                 credentials_path.display(),
-                toml_de_error
+                error
             ),
-            Self::CredentialsFileSerialize {
-                profiles,
-                toml_ser_error,
-            } => write!(
+            Self::CredentialsFileSerialize { profiles, error } => write!(
                 f,
                 "User credentials failed to be serialized.\n\
                 Profiles: `{:?}`\n\
                 Error: `{}`",
-                profiles, toml_ser_error
+                profiles, error
             ),
         }
     }

@@ -66,12 +66,9 @@ where
         if let Some(parent_path) = credentials_path.parent() {
             async_fs::create_dir_all(parent_path)
                 .await
-                .map_err(|io_error| {
+                .map_err(|error| {
                     let parent_path = parent_path.to_owned();
-                    Error::CredentialsParentDirCreate {
-                        parent_path,
-                        io_error,
-                    }
+                    Error::CredentialsParentDirCreate { parent_path, error }
                 })?;
         }
         Ok(())
@@ -83,22 +80,19 @@ where
     ) -> Result<(), Error<C>> {
         async_fs::write(credentials_path, credentials_contents)
             .await
-            .map_err(|io_error| {
+            .map_err(|error| {
                 let credentials_path = credentials_path.to_owned();
                 Error::CredentialsFileWrite {
                     credentials_path,
-                    io_error,
+                    error,
                 }
             })
     }
 
     fn profiles_serialize(profiles: &Profiles<C>) -> Result<String, Error<C>> {
-        toml::ser::to_string_pretty(&profiles).map_err(|toml_ser_error| {
+        toml::ser::to_string_pretty(&profiles).map_err(|error| {
             let profiles = profiles.clone();
-            Error::CredentialsFileSerialize {
-                profiles,
-                toml_ser_error,
-            }
+            Error::CredentialsFileSerialize { profiles, error }
         })
     }
 }
