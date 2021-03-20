@@ -1,5 +1,11 @@
 use std::fmt;
 
+#[cfg(feature = "smol")]
+type IoError = smol::io::Error;
+
+#[cfg(not(feature = "smol"))]
+type IoError = std::io::Error;
+
 /// Errors when using `credenti_cli`.
 #[derive(Debug)]
 pub enum Error {
@@ -8,10 +14,10 @@ pub enum Error {
         /// Prompt to be written.
         prompt: String,
         /// Underlying error.
-        error: smol::io::Error,
+        error: IoError,
     },
     /// Failed to flush stderr.
-    StdErrFlush(smol::io::Error),
+    StdErrFlush(IoError),
     /// Failed to read username.
     UsernameRead(std::io::Error),
     /// Failed to read password.

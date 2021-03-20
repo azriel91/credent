@@ -1,5 +1,6 @@
 use std::{fmt::Display, io};
 
+#[cfg(feature = "smol")]
 use smol::{io::AsyncWriteExt, Unblock};
 
 use credent_cli_model::Error;
@@ -53,6 +54,7 @@ where
     }
 
     /// Reads the username from the terminal.
+    #[cfg(feature = "smol")]
     pub async fn prompt_username(&self) -> Result<Username, Error> {
         let prompt = self.username_prompt.to_string();
         let mut stderr = Unblock::new(io::stderr());
@@ -75,6 +77,7 @@ where
     }
 
     /// Reads the password from the terminal.
+    #[cfg(feature = "smol")]
     pub async fn prompt_password(&self) -> Result<Password, Error> {
         let prompt = self.password_prompt.to_string();
         let mut stderr = Unblock::new(io::stderr());
