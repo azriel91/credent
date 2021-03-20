@@ -1,6 +1,6 @@
 [package]
 name = "credent_model"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2018"
 description = "Data types to represent application credentials."

@@ -1,6 +1,6 @@
 [package]
 name = "credent_fs"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2018"
 description = "Reads / Writes credentials from / to disk."
@@ -19,8 +19,8 @@ dirs = "3.0.1"
 serde = "1.0.116"
 toml = "0.5.6"
 
-credent_fs_model = { version = "0.2.0", path = "../credent_fs_model" }
-credent_model = { version = "0.2.1", path = "../credent_model", features = ["serde"] }
+credent_fs_model = { version = "0.3.0", path = "../credent_fs_model" }
+credent_model = { version = "0.3.0", path = "../credent_model", features = ["serde"] }
 
 [dev-dependencies]
 smol = "1.2.5"
