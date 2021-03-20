@@ -1,10 +1,8 @@
 use std::{fmt::Display, io};
 
-use smol::{
-    io::{AsyncWriteExt, Error},
-    Unblock,
-};
+use smol::{io::AsyncWriteExt, Unblock};
 
+use credent_cli_model::Error;
 use credent_model::{Credentials, Password, Username};
 
 const CREDENTIALS_CLI_READER_PLAIN: CredentialsCliReader<&str, &str> = CredentialsCliReader {
@@ -56,11 +54,13 @@ where
 
     /// Reads the username from the terminal.
     pub async fn prompt_username(&self) -> Result<Username, Error> {
+        let prompt = self.username_prompt.to_string();
         let mut stderr = Unblock::new(io::stderr());
         stderr
-            .write_all(self.username_prompt.to_string().as_bytes())
-            .await?;
-        stderr.flush().await?;
+            .write_all(prompt.as_bytes())
+            .await
+            .map_err(|error| Error::PromptWrite { prompt, error })?;
+        stderr.flush().await.map_err(Error::StdErrFlush)?;
 
         let username = smol::unblock(|| {
             let mut username = String::new();
@@ -68,26 +68,29 @@ where
                 .read_line(&mut username)
                 .map(|_| Username(username.trim().to_string()))
         })
-        .await?;
+        .await
+        .map_err(Error::UsernameRead)?;
 
         Ok(username)
     }
 
     /// Reads the password from the terminal.
     pub async fn prompt_password(&self) -> Result<Password, Error> {
+        let prompt = self.password_prompt.to_string();
         let mut stderr = Unblock::new(io::stderr());
         stderr
-            .write_all(self.password_prompt.to_string().as_bytes())
-            .await?;
-        stderr.flush().await?;
+            .write_all(prompt.as_bytes())
+            .await
+            .map_err(|error| Error::PromptWrite { prompt, error })?;
+        stderr.flush().await.map_err(Error::StdErrFlush)?;
 
         // Read password on a separate thread.
         let password = smol::unblock(|| {
             rpassword::read_password_from_tty(None)
                 .map(Password::new)
-                .expect("Failed to) read password from user input.")
+                .map_err(Error::PasswordRead)
         })
-        .await;
+        .await?;
 
         Ok(password)
     }

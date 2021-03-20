@@ -2,6 +2,8 @@
 
 //! Reads in credentials from the CLI.
 
-mod credentials_cli_reader;
-
 pub use crate::credentials_cli_reader::CredentialsCliReader;
+
+pub use credent_cli_model as model;
+
+mod credentials_cli_reader;
