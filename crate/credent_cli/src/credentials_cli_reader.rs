@@ -57,21 +57,16 @@ where
     /// Reads the username from the terminal.
     pub async fn prompt_username(&self) -> Result<Username, Error> {
         let prompt = self.username_prompt.to_string();
-        let mut stderr = Unblock::new(io::stderr());
-        stderr
-            .write_all(prompt.as_bytes())
+        let username = Self::prompt_plain_text(&prompt)
             .await
-            .map_err(|error| Error::PromptWrite { prompt, error })?;
-        stderr.flush().await.map_err(Error::StdErrFlush)?;
-
-        let username = smol::unblock(|| {
-            let mut username = String::new();
-            io::stdin()
-                .read_line(&mut username)
-                .map(|_| Username(username.trim().to_string()))
-        })
-        .await
-        .map_err(Error::UsernameRead)?;
+            .map(Username)
+            .map_err(|e| {
+                if let Error::PlainTextRead(error) = e {
+                    Error::UsernameRead(error)
+                } else {
+                    e
+                }
+            })?;
 
         Ok(username)
     }
@@ -79,22 +74,56 @@ where
     /// Reads the password from the terminal.
     pub async fn prompt_password(&self) -> Result<Password, Error> {
         let prompt = self.password_prompt.to_string();
-        let mut stderr = Unblock::new(io::stderr());
-        stderr
-            .write_all(prompt.as_bytes())
+        let password = Self::prompt_secret(&prompt)
             .await
-            .map_err(|error| Error::PromptWrite { prompt, error })?;
-        stderr.flush().await.map_err(Error::StdErrFlush)?;
-
-        // Read password on a separate thread.
-        let password = smol::unblock(|| {
-            rpassword::read_password_from_tty(None)
-                .map(Password::new)
-                .map_err(Error::PasswordRead)
-        })
-        .await?;
+            .map(Password::new)
+            .map_err(|e| {
+                if let Error::SecretRead(error) = e {
+                    Error::PasswordRead(error)
+                } else {
+                    e
+                }
+            })?;
 
         Ok(password)
+    }
+
+    /// Reads a plain text value from the terminal.
+    pub async fn prompt_plain_text(prompt: &str) -> Result<String, Error> {
+        let mut stderr = Unblock::new(io::stderr());
+        stderr.write_all(prompt.as_bytes()).await.map_err(|error| {
+            let prompt = prompt.to_string();
+            Error::PromptWrite { prompt, error }
+        })?;
+        stderr.flush().await.map_err(Error::StdErrFlush)?;
+
+        let value = smol::unblock(|| {
+            let mut value = String::new();
+            io::stdin()
+                .read_line(&mut value)
+                .map(|_| value.trim().to_string())
+        })
+        .await
+        .map_err(Error::PlainTextRead)?;
+
+        Ok(value)
+    }
+
+    /// Reads a secret value from the terminal.
+    pub async fn prompt_secret(prompt: &str) -> Result<String, Error> {
+        let mut stderr = Unblock::new(io::stderr());
+        stderr.write_all(prompt.as_bytes()).await.map_err(|error| {
+            let prompt = prompt.to_string();
+            Error::PromptWrite { prompt, error }
+        })?;
+        stderr.flush().await.map_err(Error::StdErrFlush)?;
+
+        // Read secret value on a separate thread.
+        let secret =
+            smol::unblock(|| rpassword::read_password_from_tty(None).map_err(Error::SecretRead))
+                .await?;
+
+        Ok(secret)
     }
 }
 
@@ -118,22 +147,16 @@ where
     /// Reads the username from the terminal.
     pub async fn prompt_username(&self) -> Result<Username, Error> {
         let prompt = self.username_prompt.to_string();
-        let mut stderr = tokio::io::stderr();
-        stderr
-            .write_all(prompt.as_bytes())
+        let username = Self::prompt_plain_text(&prompt)
             .await
-            .map_err(|error| Error::PromptWrite { prompt, error })?;
-        stderr.flush().await.map_err(Error::StdErrFlush)?;
-
-        let username = tokio::task::spawn_blocking(|| {
-            let mut username = String::new();
-            io::stdin()
-                .read_line(&mut username)
-                .map(|_| Username(username.trim().to_string()))
-        })
-        .await
-        .map_err(Error::StdinReadJoin)?
-        .map_err(Error::UsernameRead)?;
+            .map(Username)
+            .map_err(|e| {
+                if let Error::PlainTextRead(error) = e {
+                    Error::UsernameRead(error)
+                } else {
+                    e
+                }
+            })?;
 
         Ok(username)
     }
@@ -141,22 +164,58 @@ where
     /// Reads the password from the terminal.
     pub async fn prompt_password(&self) -> Result<Password, Error> {
         let prompt = self.password_prompt.to_string();
-        let mut stderr = tokio::io::stderr();
-        stderr
-            .write_all(prompt.as_bytes())
+        let password = Self::prompt_secret(&prompt)
             .await
-            .map_err(|error| Error::PromptWrite { prompt, error })?;
+            .map(Password::new)
+            .map_err(|e| {
+                if let Error::SecretRead(error) = e {
+                    Error::PasswordRead(error)
+                } else {
+                    e
+                }
+            })?;
+
+        Ok(password)
+    }
+
+    /// Reads a plain text value from the terminal.
+    pub async fn prompt_plain_text(prompt: &str) -> Result<String, Error> {
+        let mut stderr = tokio::io::stderr();
+        stderr.write_all(prompt.as_bytes()).await.map_err(|error| {
+            let prompt = prompt.to_string();
+            Error::PromptWrite { prompt, error }
+        })?;
         stderr.flush().await.map_err(Error::StdErrFlush)?;
 
-        // Read password on a separate thread.
-        let password = tokio::task::spawn_blocking(|| {
-            rpassword::read_password_from_tty(None)
-                .map(Password::new)
-                .map_err(Error::PasswordRead)
+        let value = tokio::task::spawn_blocking(|| {
+            let mut value = String::new();
+            io::stdin()
+                .read_line(&mut value)
+                .map(|_| value.trim().to_string())
+        })
+        .await
+        .map_err(Error::StdinReadJoin)?
+        .map_err(Error::PlainTextRead)?;
+
+        Ok(value)
+    }
+
+    /// Reads a secret value from the terminal.
+    pub async fn prompt_secret(prompt: &str) -> Result<String, Error> {
+        let mut stderr = tokio::io::stderr();
+        stderr.write_all(prompt.as_bytes()).await.map_err(|error| {
+            let prompt = prompt.to_string();
+            Error::PromptWrite { prompt, error }
+        })?;
+        stderr.flush().await.map_err(Error::StdErrFlush)?;
+
+        // Read secret value on a separate thread.
+        let secret = tokio::task::spawn_blocking(|| {
+            rpassword::read_password_from_tty(None).map_err(Error::SecretRead)
         })
         .await
         .map_err(Error::StdinReadJoin)??;
 
-        Ok(password)
+        Ok(secret)
     }
 }

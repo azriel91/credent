@@ -33,6 +33,10 @@ pub enum Error {
     UsernameRead(std::io::Error),
     /// Failed to read password.
     PasswordRead(std::io::Error),
+    /// Failed to read a plain text value from stdin.
+    PlainTextRead(std::io::Error),
+    /// Failed to read a secret value from stdin.
+    SecretRead(std::io::Error),
 
     /// Tokio blocking task join error.
     #[cfg(feature = "tokio")]
@@ -46,8 +50,10 @@ impl fmt::Display for Error {
                 write!(f, "Failed to write prompt to stderr. Prompt: `{}`", prompt)
             }
             Self::StdErrFlush(..) => write!(f, "Failed to flush `stderr`."),
-            Self::UsernameRead(..) => write!(f, "Failed to read username."),
-            Self::PasswordRead(..) => write!(f, "Failed to read password."),
+            Self::UsernameRead(..) => write!(f, "Failed to read username from stdin."),
+            Self::PasswordRead(..) => write!(f, "Failed to read password from stdin."),
+            Self::PlainTextRead(..) => write!(f, "Failed to read value from stdin."),
+            Self::SecretRead(..) => write!(f, "Failed to read secret value from stdin."),
 
             #[cfg(feature = "tokio")]
             Self::StdinReadJoin(_) => write!(f, "Failed to wait for stdin task to complete."),
@@ -62,6 +68,8 @@ impl std::error::Error for Error {
             Self::StdErrFlush(error) => Some(error),
             Self::UsernameRead(error) => Some(error),
             Self::PasswordRead(error) => Some(error),
+            Self::PlainTextRead(error) => Some(error),
+            Self::SecretRead(error) => Some(error),
 
             #[cfg(feature = "tokio")]
             Self::StdinReadJoin(error) => Some(error),

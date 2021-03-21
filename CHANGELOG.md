@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 (2021-03-21)
+
+### Added
+
+* Support switching between `"backend-smol"` and `"backend-tokio"`. [#9]
+* `CredentialsCliReader` arbitrary prompt support via `prompt_plain_text` and `prompt_secret`. [#10]
+
+[#9]: https://github.com/azriel91/credent/pull/9
+[#10]: https://github.com/azriel91/credent/pull/10
+
 ## 0.3.0 (2021-03-20)
 
 ### Changed
