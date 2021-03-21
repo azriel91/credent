@@ -1,10 +1,21 @@
 use std::fmt;
 
-#[cfg(feature = "smol")]
+#[cfg(all(feature = "smol", not(feature = "tokio")))]
 type IoError = smol::io::Error;
 
-#[cfg(feature = "tokio")]
+#[cfg(all(not(feature = "smol"), feature = "tokio"))]
 type IoError = tokio::io::Error;
+
+#[cfg(all(not(feature = "smol"), not(feature = "tokio")))]
+compile_error!(
+    r#"`credent` needs either the "backend-smol" or "backend-tokio" feature to be enabled."#
+);
+
+#[cfg(all(feature = "smol", feature = "tokio"))]
+compile_error!(
+    r#"Only one of "backend-smol" or "backend-tokio" should be enabled for `credent`.
+Maybe different crates are using different features?"#
+);
 
 /// Errors when using `credenti_cli`.
 #[derive(Debug)]
