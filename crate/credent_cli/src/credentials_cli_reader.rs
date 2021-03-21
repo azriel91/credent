@@ -1,7 +1,5 @@
 use std::{fmt::Display, io};
 
-use smol::{io::AsyncWriteExt, Unblock};
-
 use credent_cli_model::Error;
 use credent_model::{Credentials, Password, Username};
 
@@ -39,6 +37,10 @@ impl CredentialsCliReader<(), ()> {
     }
 }
 
+#[cfg(feature = "smol")]
+use smol::{io::AsyncWriteExt, Unblock};
+
+#[cfg(feature = "smol")]
 impl<UsernamePrompt, PasswordPrompt> CredentialsCliReader<UsernamePrompt, PasswordPrompt>
 where
     UsernamePrompt: Display,
@@ -91,6 +93,69 @@ where
                 .map_err(Error::PasswordRead)
         })
         .await?;
+
+        Ok(password)
+    }
+}
+
+#[cfg(feature = "tokio")]
+use tokio::io::AsyncWriteExt;
+
+#[cfg(feature = "tokio")]
+impl<UsernamePrompt, PasswordPrompt> CredentialsCliReader<UsernamePrompt, PasswordPrompt>
+where
+    UsernamePrompt: Display,
+    PasswordPrompt: Display,
+{
+    /// Reads the username and password from the terminal.
+    pub async fn prompt_from_tty(&self) -> Result<Credentials, Error> {
+        let username = self.prompt_username().await?;
+        let password = self.prompt_password().await?;
+
+        Ok(Credentials { username, password })
+    }
+
+    /// Reads the username from the terminal.
+    pub async fn prompt_username(&self) -> Result<Username, Error> {
+        let prompt = self.username_prompt.to_string();
+        let mut stderr = tokio::io::stderr();
+        stderr
+            .write_all(prompt.as_bytes())
+            .await
+            .map_err(|error| Error::PromptWrite { prompt, error })?;
+        stderr.flush().await.map_err(Error::StdErrFlush)?;
+
+        let username = tokio::task::spawn_blocking(|| {
+            let mut username = String::new();
+            io::stdin()
+                .read_line(&mut username)
+                .map(|_| Username(username.trim().to_string()))
+        })
+        .await
+        .map_err(Error::StdinReadJoin)?
+        .map_err(Error::UsernameRead)?;
+
+        Ok(username)
+    }
+
+    /// Reads the password from the terminal.
+    pub async fn prompt_password(&self) -> Result<Password, Error> {
+        let prompt = self.password_prompt.to_string();
+        let mut stderr = tokio::io::stderr();
+        stderr
+            .write_all(prompt.as_bytes())
+            .await
+            .map_err(|error| Error::PromptWrite { prompt, error })?;
+        stderr.flush().await.map_err(Error::StdErrFlush)?;
+
+        // Read password on a separate thread.
+        let password = tokio::task::spawn_blocking(|| {
+            rpassword::read_password_from_tty(None)
+                .map(Password::new)
+                .map_err(Error::PasswordRead)
+        })
+        .await
+        .map_err(Error::StdinReadJoin)??;
 
         Ok(password)
     }

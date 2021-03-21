@@ -1,5 +1,22 @@
 use std::fmt;
 
+#[cfg(all(feature = "smol", not(feature = "tokio")))]
+type IoError = smol::io::Error;
+
+#[cfg(all(not(feature = "smol"), feature = "tokio"))]
+type IoError = tokio::io::Error;
+
+#[cfg(all(not(feature = "smol"), not(feature = "tokio")))]
+compile_error!(
+    r#"`credent` needs either the "backend-smol" or "backend-tokio" feature to be enabled."#
+);
+
+#[cfg(all(feature = "smol", feature = "tokio"))]
+compile_error!(
+    r#"Only one of "backend-smol" or "backend-tokio" should be enabled for `credent`.
+Maybe different crates are using different features?"#
+);
+
 /// Errors when using `credenti_cli`.
 #[derive(Debug)]
 pub enum Error {
@@ -8,14 +25,18 @@ pub enum Error {
         /// Prompt to be written.
         prompt: String,
         /// Underlying error.
-        error: smol::io::Error,
+        error: IoError,
     },
     /// Failed to flush stderr.
-    StdErrFlush(smol::io::Error),
+    StdErrFlush(IoError),
     /// Failed to read username.
     UsernameRead(std::io::Error),
     /// Failed to read password.
     PasswordRead(std::io::Error),
+
+    /// Tokio blocking task join error.
+    #[cfg(feature = "tokio")]
+    StdinReadJoin(tokio::task::JoinError),
 }
 
 impl fmt::Display for Error {
@@ -27,6 +48,9 @@ impl fmt::Display for Error {
             Self::StdErrFlush(..) => write!(f, "Failed to flush `stderr`."),
             Self::UsernameRead(..) => write!(f, "Failed to read username."),
             Self::PasswordRead(..) => write!(f, "Failed to read password."),
+
+            #[cfg(feature = "tokio")]
+            Self::StdinReadJoin(_) => write!(f, "Failed to wait for stdin task to complete."),
         }
     }
 }
@@ -38,6 +62,9 @@ impl std::error::Error for Error {
             Self::StdErrFlush(error) => Some(error),
             Self::UsernameRead(error) => Some(error),
             Self::PasswordRead(error) => Some(error),
+
+            #[cfg(feature = "tokio")]
+            Self::StdinReadJoin(error) => Some(error),
         }
     }
 }

@@ -10,6 +10,14 @@ Manages `~/.config/<app>/credentials`.
 
 ## Usage
 
+Add the following to Cargo.toml:
+
+```toml
+credent = { version = "0.4.0", features = ["backend-smol"] } # or "backend-tokio"
+```
+
+Example code:
+
 ```rust
 use credent::{
     cli::CredentialsCliReader,
@@ -37,13 +45,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-More sample code can be seen in the [examples](examples).
+More examples can be seen in the [examples](examples).
 
-```
-cargo run --example simple
-cargo run --example demo
-cargo run --example profiles
-cargo run --example profiles -- --profile development
+```bash
+# Use either "backend-smol" or "backend-tokio"
+cargo run --features "backend-smol" --example simple
+cargo run --features "backend-smol" --example demo
+cargo run --features "backend-smol" --example profiles
+cargo run --features "backend-smol" --example profiles -- --profile development
 ```
 
 ## License

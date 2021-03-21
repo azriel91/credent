@@ -24,10 +24,31 @@ const CREDENT: AppName<'_> = AppName("credent");
 
 type CredentialsFile = credent::fs::CredentialsFile<Credentials>;
 
+#[cfg(feature = "backend-smol")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", Logo::ascii_coloured());
 
     smol::block_on(async {
+        let credentials = match existing_credentials().await? {
+            Some(credentials) => credentials,
+            None => prompt_and_save_credentials().await?,
+        };
+        println!("");
+
+        output_credentials(&credentials);
+        output_password(&credentials.password);
+
+        Result::<(), Box<dyn std::error::Error>>::Ok(())
+    })
+}
+
+#[cfg(feature = "backend-tokio")]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let rt = tokio::runtime::Runtime::new()?;
+
+    println!("{}", Logo::ascii_coloured());
+
+    rt.block_on(async {
         let credentials = match existing_credentials().await? {
             Some(credentials) => credentials,
             None => prompt_and_save_credentials().await?,
