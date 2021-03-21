@@ -96,3 +96,150 @@ where
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+
+    use async_fs::File;
+    use credent_model::{Credentials, Password, Profile, Username};
+    use futures_lite::io::AsyncReadExt;
+    use tempfile::NamedTempFile;
+
+    use super::CredentialsFileStorer;
+
+    #[cfg(feature = "base64")]
+    const PROFILES_CONTENT: &str = r#"
+        [default]
+        username = "me"
+        password = "c2VjcmV0" # secret
+
+        [profile_other]
+        username = "you"
+        password = "Y29kZQ==" # code
+    "#;
+
+    #[cfg(not(feature = "base64"))]
+    const PROFILES_CONTENT: &str = r#"
+        [default]
+        username = "me"
+        password = "secret"
+
+        [profile_other]
+        username = "you"
+        password = "code"
+    "#;
+
+    #[test]
+    fn store_file_creates_file_when_non_existent() -> Result<(), Box<dyn std::error::Error>> {
+        smol::block_on(async {
+            let tempdir = tempfile::tempdir()?;
+            let file_path = tempdir.path().join("credentials");
+            let profile_default = Profile::new_default(Credentials {
+                username: Username(String::from("me")),
+                password: Password::new("secret"),
+            });
+
+            CredentialsFileStorer::store_file(&profile_default, &file_path).await?;
+
+            #[cfg(feature = "base64")]
+            let content_expected = "\
+                [default]\n\
+                username = 'me'\n\
+                password = 'c2VjcmV0'\n\
+            ";
+            #[cfg(not(feature = "base64"))]
+            let content_expected = "\
+                [default]\n\
+                username = 'me'\n\
+                password = 'secret'\n\
+            ";
+
+            let mut file = File::open(&file_path).await?;
+            let mut contents = String::new();
+            let _n = file.read_to_string(&mut contents).await?;
+            assert_eq!(content_expected, contents);
+
+            Ok(())
+        })
+    }
+
+    #[test]
+    fn store_file_adds_profile_when_non_existent() -> Result<(), Box<dyn std::error::Error>> {
+        smol::block_on(async {
+            let file = NamedTempFile::new()?;
+            let profile_other = Profile::new(
+                String::from("profile_other"),
+                Credentials {
+                    username: Username(String::from("me")),
+                    password: Password::new("secret"),
+                },
+            );
+
+            CredentialsFileStorer::store_file(&profile_other, file.path()).await?;
+
+            #[cfg(feature = "base64")]
+            let content_expected = "\
+                [profile_other]\n\
+                username = 'me'\n\
+                password = 'c2VjcmV0'\n\
+            ";
+            #[cfg(not(feature = "base64"))]
+            let content_expected = "\
+                [profile_other]\n\
+                username = 'me'\n\
+                password = 'secret'\n\
+            ";
+
+            let mut file = File::open(file.path()).await?;
+            let mut contents = String::new();
+            let _n = file.read_to_string(&mut contents).await?;
+            assert_eq!(content_expected, contents);
+
+            Ok(())
+        })
+    }
+
+    #[test]
+    fn store_file_replaces_profile_when_pre_existent() -> Result<(), Box<dyn std::error::Error>> {
+        smol::block_on(async {
+            let mut file = NamedTempFile::new()?;
+            write!(file, "{}", PROFILES_CONTENT)?;
+
+            let profile_default = Profile::new_default(Credentials {
+                username: Username(String::from("me")),
+                password: Password::new("boo"),
+            });
+
+            CredentialsFileStorer::store_file(&profile_default, file.path()).await?;
+
+            #[cfg(feature = "base64")]
+            let content_expected = "\
+                [default]\n\
+                username = 'me'\n\
+                password = 'Ym9v'\n\
+                \n\
+                [profile_other]\n\
+                username = 'you'\n\
+                password = 'Y29kZQ=='\n\
+            ";
+            #[cfg(not(feature = "base64"))]
+            let content_expected = "\
+                [default]\n\
+                username = 'me'\n\
+                password = 'boo'\n\
+                \n\
+                [profile_other]\n\
+                username = 'you'\n\
+                password = 'code'\n\
+            ";
+
+            let mut file = File::open(file.path()).await?;
+            let mut contents = String::new();
+            let _n = file.read_to_string(&mut contents).await?;
+            assert_eq!(content_expected, contents);
+
+            Ok(())
+        })
+    }
+}
