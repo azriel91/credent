@@ -1,4 +1,4 @@
-# Credent
+# 🔑 Credent
 
 [![Crates.io](https://img.shields.io/crates/v/credent.svg)](https://crates.io/crates/credent)
 ![CI](https://github.com/azriel91/credent/workflows/CI/badge.svg)
