@@ -10,6 +10,9 @@ readme = "README.md"
 keywords = ["credentials", "profile"]
 license = "MIT OR Apache-2.0"
 
+[package.metadata.docs.rs]
+features = ["backend-tokio"]
+
 [lib]
 test = false
 doctest = false
