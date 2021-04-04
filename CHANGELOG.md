@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.1 (unreleased)
+## 0.4.1 (2021-04-05)
 
 ### Added
 

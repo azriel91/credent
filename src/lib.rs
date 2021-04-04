@@ -7,7 +7,7 @@
 //! Add the following to Cargo.toml:
 //!
 //! ```toml
-//! credent = { version = "0.4.0", features = ["backend-smol"] } # or "backend-tokio"
+//! credent = { version = "0.4.1", features = ["backend-smol"] } # or "backend-tokio"
 //! ```
 //!
 //! Example code:
