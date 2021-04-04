@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1 (unreleased)
+
+### Added
+
+* `CredentialsFileStorer::store_many` stores multiple profiles. [#11]
+
+[#11]: https://github.com/azriel91/credent/pull/11
+
 ## 0.4.0 (2021-03-21)
 
 ### Added

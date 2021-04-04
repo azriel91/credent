@@ -1,6 +1,6 @@
 [package]
 name = "credent_cli_model"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Azriel Hoh <azriel91@gmail.com>"]
 edition = "2018"
 description = "Reads in credentials from the CLI."
@@ -9,6 +9,9 @@ documentation = "https://docs.rs/credent/"
 readme = "../../README.md"
 keywords = ["credentials", "profile"]
 license = "MIT OR Apache-2.0"
+
+[package.metadata.docs.rs]
+features = ["backend-tokio"]
 
 [lib]
 test = false
