@@ -1,7 +1,8 @@
 # 🔑 Credent
 
 [![Crates.io](https://img.shields.io/crates/v/credent.svg)](https://crates.io/crates/credent)
-![CI](https://github.com/azriel91/credent/workflows/CI/badge.svg)
+[![docs.rs](https://img.shields.io/docsrs/credent)](https://docs.rs/credent)
+[![CI](https://github.com/azriel91/credent/workflows/CI/badge.svg)](https://github.com/azriel91/credent/actions/workflows/ci.yml)
 [![Coverage Status](https://codecov.io/gh/azriel91/credent/branch/main/graph/badge.svg)](https://codecov.io/gh/azriel91/credent)
 
 Manages `~/.config/<app>/credentials`.
