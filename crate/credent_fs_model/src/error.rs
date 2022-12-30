@@ -104,8 +104,7 @@ where
             ),
             Self::CredentialsFileSerialize { profiles, .. } => write!(
                 f,
-                "User credentials failed to be serialized. Profiles: `{:?}`",
-                profiles
+                "User credentials failed to be serialized. Profiles: `{profiles:?}`",
             ),
         }
     }

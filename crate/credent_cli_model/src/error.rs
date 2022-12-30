@@ -47,7 +47,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::PromptWrite { prompt, .. } => {
-                write!(f, "Failed to write prompt to stderr. Prompt: `{}`", prompt)
+                write!(f, "Failed to write prompt to stderr. Prompt: `{prompt}`")
             }
             Self::StdErrFlush(..) => write!(f, "Failed to flush `stderr`."),
             Self::UsernameRead(..) => write!(f, "Failed to read username from stdin."),

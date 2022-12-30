@@ -56,9 +56,9 @@ where
         let mut profile_iter = self.0.iter();
 
         if let Some(profile_first) = profile_iter.next() {
-            write!(f, "{}", profile_first)?;
+            write!(f, "{profile_first}")?;
         }
-        profile_iter.try_for_each(|profile| write!(f, ", {}", profile))?;
+        profile_iter.try_for_each(|profile| write!(f, ", {profile}"))?;
 
         write!(f, "]")
     }
